@@ -10,7 +10,7 @@
   <!-- Google Fonts for crisp typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="theme-rainbow">
   <div class="app-container">
@@ -35,31 +35,32 @@
           <span class="status-dot" id="status-dot"></span>
           <span id="status-text">Ready</span>
         </div>
-        <button id="btn-fullscreen" class="btn-fullscreen" title="Toggle Fullscreen">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-          <span>Fullscreen</span>
+        <button id="btn-fullscreen" class="btn-header" type="button" title="Toggle Fullscreen Mode">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          <span id="fullscreen-text">Fullscreen</span>
         </button>
-        <a href="https://github.com/CaptanJackSparr0w/Sorting-Visualiser.io" target="_blank" rel="noopener noreferrer" class="btn-github" title="Original Python Repo">
+        <a href="https://github.com/CaptanJackSparr0w/Sorting-Visualiser.io" target="_blank" rel="noopener noreferrer" class="btn-header" title="Original Python Tkinter Repository">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
           </svg>
-          <span>Source</span>
+          <span>Python Repo</span>
         </a>
       </div>
     </header>
 
     <!-- Main Workspace -->
     <main class="app-main">
-      <!-- Controls Toolbar -->
+      <!-- Top Control Cards Grid -->
       <section class="controls-panel">
-        <!-- Group 1: Algorithm & Generation -->
+        <!-- Card 1: Algorithm & Pattern -->
         <div class="control-card">
           <div class="card-title">
+            <span class="card-title-icon">⚙️</span>
             <span>Algorithm & Order</span>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="algorithm-select">Algorithm</label>
+              <label for="algorithm-select">Sorting Algorithm</label>
               <select id="algorithm-select" class="select-input">
                 <option value="quickSort" selected>Quick Sort</option>
                 <option value="mergeSort">Merge Sort</option>
@@ -78,15 +79,16 @@
                 <option value="nearlySorted">Nearly Sorted</option>
                 <option value="reversed">Reversed / Inverted</option>
                 <option value="fewUnique">Few Unique Values</option>
-                <option value="sawtooth">Sawtooth / Sine</option>
+                <option value="sawtooth">Sawtooth Wave</option>
               </select>
             </div>
           </div>
         </div>
 
-        <!-- Group 2: Array Parameters (Original min/max/size) -->
+        <!-- Card 2: Array Parameters -->
         <div class="control-card">
           <div class="card-title">
+            <span class="card-title-icon">📊</span>
             <span>Array Configuration</span>
           </div>
           <div class="sliders-grid">
@@ -124,30 +126,16 @@
           </div>
         </div>
 
-        <!-- Group 3: Visualization & Audio Customization -->
+        <!-- Card 3: Theme & Audio -->
         <div class="control-card">
           <div class="card-title">
-            <span>Render Mode & Effects</span>
-          </div>
-          <div class="form-group">
-            <label>Visualization Mode</label>
-            <div class="mode-pills">
-              <button class="btn-mode active" data-mode="bars">Bars</button>
-              <button class="btn-mode" data-mode="radial">Radial</button>
-              <button class="btn-mode" data-mode="dots">Dots</button>
-              <button class="btn-mode" data-mode="wave">Wave</button>
-            </div>
-          </div>
-          <div class="toggles-row">
-            <span class="toggle-chip active" id="chip-bloom">✨ Bloom Glow</span>
-            <span class="toggle-chip active" id="chip-reflection">🌊 Reflection</span>
-            <span class="toggle-chip active" id="chip-particles">🎆 Sparks</span>
-            <span class="toggle-chip active" id="chip-spatial">🎧 3D Audio</span>
+            <span class="card-title-icon">🎨</span>
+            <span>Palette & Audio</span>
           </div>
           <div class="form-row">
             <div class="form-group">
-              <label for="theme-select">Palette Theme</label>
-              <select id="theme-select" class="select-input select-sm">
+              <label for="theme-select">Color Theme</label>
+              <select id="theme-select" class="select-input">
                 <option value="theme-rainbow" selected>Original Rainbow HSV</option>
                 <option value="theme-cyberpunk">Cyberpunk Neon</option>
                 <option value="theme-aurora">Aurora Borealis</option>
@@ -159,13 +147,13 @@
             <div class="form-group">
               <label>Synthesizer Audio</label>
               <div class="audio-btn-row">
-                <button id="btn-sound-toggle" class="btn btn-outline select-sm" title="Toggle audio synthesizer">
+                <button id="btn-sound-toggle" type="button" class="btn btn-audio active" title="Toggle audio synthesizer">
                   <span id="sound-icon">🔊</span>
                   <span id="sound-text">Audio ON</span>
                 </button>
-                <select id="waveform-select" class="select-input select-sm" title="Waveform">
-                  <option value="sine">Sine</option>
+                <select id="waveform-select" class="select-input select-sm" title="Synthesizer Waveform">
                   <option value="triangle" selected>Triangle</option>
+                  <option value="sine">Sine</option>
                   <option value="sawtooth">Sawtooth</option>
                   <option value="square">Square</option>
                 </select>
@@ -173,71 +161,121 @@
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- Group 4: Action Controls -->
-        <div class="control-card action-card">
-          <div class="card-title">
-            <span>Execution Controls</span>
-          </div>
-          <div class="buttons-grid">
-            <button id="btn-generate" class="btn btn-secondary">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-              <span>Generate</span>
-            </button>
-            <button id="btn-start" class="btn btn-primary">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              <span>Start Sort</span>
-            </button>
-            <button id="btn-pause" class="btn btn-warning" disabled>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-              <span>Pause</span>
-            </button>
-            <button id="btn-step" class="btn btn-outline" disabled title="Step forward one step">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-              <span>Step</span>
-            </button>
-            <button id="btn-reset" class="btn btn-danger">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              <span>Reset</span>
-            </button>
-          </div>
+      <!-- Prominent Main Action Deck -->
+      <section class="action-deck">
+        <div class="action-deck-buttons">
+          <button id="btn-generate" type="button" class="btn btn-action btn-gen" title="Generate New Array (Key: G)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <span>Generate New Array</span>
+          </button>
+          <button id="btn-start" type="button" class="btn btn-action btn-start" title="Start Sorting (Key: S or Space)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>Start Sorting</span>
+          </button>
+          <button id="btn-pause" type="button" class="btn btn-action btn-pause" disabled title="Pause / Resume (Key: Space)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            <span>Pause</span>
+          </button>
+          <button id="btn-step" type="button" class="btn btn-action btn-step" disabled title="Step Forward 1 Comparison/Swap">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+            <span>Step Forward</span>
+          </button>
+          <button id="btn-reset" type="button" class="btn btn-action btn-reset" title="Reset & Cancel (Key: R)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <span>Reset</span>
+          </button>
         </div>
       </section>
 
-      <!-- Live Visualization Area -->
+      <!-- Live Visualization Deck -->
       <section class="visualizer-section">
-        <!-- Live Metrics Banner -->
-        <div class="metrics-bar">
-          <div class="metrics-group">
-            <div class="metric-item">
-              <span class="metric-label">Comparisons</span>
-              <span class="metric-value" id="metric-comparisons">0</span>
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Swaps / Writes</span>
-              <span class="metric-value" id="metric-swaps">0</span>
-            </div>
-            <div class="metric-item">
-              <span class="metric-label">Elapsed Time</span>
-              <span class="metric-value" id="metric-time">0.00 s</span>
+        <!-- Visualizer Mode Bar & FX Toggles -->
+        <div class="viz-toolbar">
+          <div class="toolbar-group">
+            <span class="toolbar-label">VIEW MODE:</span>
+            <div class="mode-pills-bar">
+              <button class="btn-mode-pill active" type="button" data-mode="bars">
+                <span class="mode-icon">📊</span>
+                <span>Vertical Bars</span>
+              </button>
+              <button class="btn-mode-pill" type="button" data-mode="radial">
+                <span class="mode-icon">🔘</span>
+                <span>Polar Radial</span>
+              </button>
+              <button class="btn-mode-pill" type="button" data-mode="dots">
+                <span class="mode-icon">✨</span>
+                <span>Scatter Dots</span>
+              </button>
+              <button class="btn-mode-pill" type="button" data-mode="wave">
+                <span class="mode-icon">🌊</span>
+                <span>Wave Ribbon</span>
+              </button>
             </div>
           </div>
-          <div class="metric-item">
-            <span class="metric-label">Active Phase</span>
-            <span class="metric-value phase-badge" id="metric-phase">Idle</span>
+
+          <div class="toolbar-group">
+            <span class="toolbar-label">EFFECTS:</span>
+            <div class="fx-toggles-bar">
+              <button class="btn-fx-toggle active" id="chip-bloom" type="button">
+                <span class="fx-dot"></span>
+                <span>Bloom Glow</span>
+              </button>
+              <button class="btn-fx-toggle active" id="chip-reflection" type="button">
+                <span class="fx-dot"></span>
+                <span>Reflection</span>
+              </button>
+              <button class="btn-fx-toggle active" id="chip-particles" type="button">
+                <span class="fx-dot"></span>
+                <span>Sparks</span>
+              </button>
+              <button class="btn-fx-toggle active" id="chip-spatial" type="button">
+                <span class="fx-dot"></span>
+                <span>3D Audio</span>
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Canvas Container with Progress Bar -->
         <div class="canvas-wrapper" id="canvas-container">
+          <div class="canvas-top-overlay">
+            <div class="phase-badge" id="metric-phase">Idle &bull; Ready to Sort</div>
+            <div class="speed-presets">
+              <span class="preset-label">Speed:</span>
+              <button class="btn-speed-preset" data-speed="80" type="button">0.5x</button>
+              <button class="btn-speed-preset active" data-speed="30" type="button">1x</button>
+              <button class="btn-speed-preset" data-speed="10" type="button">3x</button>
+              <button class="btn-speed-preset" data-speed="1" type="button">Max</button>
+            </div>
+          </div>
+
           <div class="canvas-progress-bar" id="canvas-progress"></div>
           <canvas id="sorting-canvas"></canvas>
+
           <div class="canvas-legend">
             <span class="legend-item"><span class="legend-dot dot-default"></span> Normal Elements</span>
             <span class="legend-item"><span class="legend-dot dot-comparing"></span> Comparing</span>
-            <span class="legend-item"><span class="legend-dot dot-swapping"></span> Swapping / Moving</span>
+            <span class="legend-item"><span class="legend-dot dot-swapping"></span> Swapping / Writing</span>
             <span class="legend-item"><span class="legend-dot dot-pivot"></span> Pivot / Min</span>
             <span class="legend-item"><span class="legend-dot dot-sorted"></span> Sorted</span>
+          </div>
+        </div>
+
+        <!-- Live Metrics Banner -->
+        <div class="metrics-bar">
+          <div class="metric-item">
+            <span class="metric-label">Comparisons</span>
+            <span class="metric-value" id="metric-comparisons">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Array Accesses / Swaps</span>
+            <span class="metric-value" id="metric-swaps">0</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Elapsed Time</span>
+            <span class="metric-value" id="metric-time">0.00 s</span>
           </div>
         </div>
       </section>

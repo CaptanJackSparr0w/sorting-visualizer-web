@@ -1,13 +1,11 @@
 /**
  * Visualizer Engine 2.0
  * Features:
- * - 4 Visualization Modes: Vertical Bars, Polar/Radial Circle, Glowing Scatter Dots, Neon Waveform
- * - Hardware-accelerated High-DPI Canvas 2D
- * - Bloom & Ambient Glow Effects
- * - Active Pointer Indicators
- * - Particle Burst / Spark System on Swaps & Completion
- * - Floor Mirror Reflection & Rainbow HSV Gradient
- * - Interactive Mouse Hover Tooltip
+ * - 4 Modes: Vertical Bars, Polar Radial, Scatter Dots, Waveform Ribbon
+ * - High-DPI Canvas 2D with automatic ResizeObserver
+ * - Ambient Bloom Glow & Particle Sparks
+ * - Floor Mirror Reflection & Pointer Indicators
+ * - Interactive Mouse Tooltip
  */
 
 class Particle {
@@ -49,7 +47,7 @@ class Visualizer {
     this.canvas = document.getElementById(canvasId);
     this.ctx = this.canvas.getContext('2d');
     this.theme = 'theme-rainbow';
-    this.mode = 'bars'; // 'bars' | 'radial' | 'dots' | 'wave'
+    this.mode = 'bars';
     this.enableBloom = true;
     this.enableReflection = true;
     this.enableParticles = true;
@@ -57,6 +55,11 @@ class Visualizer {
     this.particles = [];
     this.hoverIndex = -1;
     this.hoverData = null;
+
+    this.currentArray = null;
+    this.currentMin = 1;
+    this.currentMax = 100;
+    this.currentState = {};
 
     this.initCanvas();
     this.bindMouseEvents();
@@ -66,17 +69,27 @@ class Visualizer {
   initCanvas() {
     this.handleResize();
     window.addEventListener('resize', () => this.handleResize());
+
+    // ResizeObserver on container to ensure flawless dynamic scaling
+    if (window.ResizeObserver && this.canvas.parentElement) {
+      const ro = new ResizeObserver(() => this.handleResize());
+      ro.observe(this.canvas.parentElement);
+    }
   }
 
   handleResize() {
     if (!this.canvas) return;
     const rect = this.canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    this.width = rect.width;
-    this.height = rect.height;
+    this.width = rect.width || this.canvas.clientWidth || 800;
+    this.height = rect.height || this.canvas.clientHeight || 420;
     this.canvas.width = Math.floor(this.width * dpr);
     this.canvas.height = Math.floor(this.height * dpr);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (this.currentArray && this.currentArray.length > 0) {
+      this.render(this.currentArray, this.currentMin, this.currentMax, this.currentState || {});
+    }
   }
 
   setTheme(themeName) {
@@ -159,15 +172,22 @@ class Visualizer {
     requestAnimationFrame(loop);
   }
 
-  spawnSparks(x, y, color, count = 8) {
+  spawnSparks(x, y, color, count = 6) {
     if (!this.enableParticles) return;
     for (let i = 0; i < count; i++) {
       this.particles.push(new Particle(x, y, color));
     }
   }
 
+  hasIndex(collection, idx) {
+    if (!collection) return false;
+    if (Array.isArray(collection)) return collection.includes(idx);
+    if (collection instanceof Set) return collection.has(idx);
+    return false;
+  }
+
   /**
-   * HSV to RGB with enhanced vibrancy and saturation
+   * HSV to RGB Spectrum Conversion
    */
   hsvToRgb(h, s, v) {
     let r, g, b;
@@ -188,19 +208,16 @@ class Visualizer {
     return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
   }
 
-  getBarColor(value, minVal, maxVal, index, total, state) {
-    // 1. Highlight overrides
-    if (state.swapping && state.swapping.includes(index)) return '#ef4444'; // Red
-    if (state.comparing && state.comparing.includes(index)) return '#f59e0b'; // Amber
+  getBarColor(value, minVal, maxVal, index, total, state = {}) {
+    if (this.hasIndex(state.swapping, index)) return '#ef4444'; // Red
+    if (this.hasIndex(state.comparing, index)) return '#f59e0b'; // Amber
     if (state.pivot === index) return '#ec4899'; // Hot Pink
-    if (state.sorted && state.sorted.includes(index)) return '#10b981'; // Emerald
-    if (state.auxiliary && state.auxiliary.includes(index)) return '#8b5cf6'; // Violet
+    if (this.hasIndex(state.sorted, index)) return '#10b981'; // Emerald
+    if (this.hasIndex(state.auxiliary, index)) return '#8b5cf6'; // Violet
 
-    // 2. Palette calculations
     const ratio = (value - minVal) / (maxVal - minVal || 1);
 
     if (this.theme === 'theme-rainbow') {
-      // 360-degree rainbow spectrum mapping
       const hue = ratio * 0.78;
       return this.hsvToRgb(hue, 0.90, 0.98);
     } else if (this.theme === 'theme-cyberpunk') {
@@ -223,9 +240,6 @@ class Visualizer {
     return '#3b82f6';
   }
 
-  /**
-   * Main Render Dispatcher
-   */
   render(array, minVal = 1, maxVal = 100, state = {}) {
     if (!this.canvas || !this.ctx || !array) return;
     this.currentArray = array;
@@ -236,7 +250,6 @@ class Visualizer {
     const { width, height } = this;
     this.ctx.clearRect(0, 0, width, height);
 
-    // Draw Background Grid / Ambient Lines
     this.drawBackgroundGrid();
 
     if (this.mode === 'radial') {
@@ -249,12 +262,10 @@ class Visualizer {
       this.renderBars(array, minVal, maxVal, state);
     }
 
-    // Render Particles
     for (const p of this.particles) {
       p.draw(this.ctx);
     }
 
-    // Render Hover Tooltip
     if (this.hoverData && this.mode === 'bars') {
       this.drawTooltip(this.hoverData);
     }
@@ -266,7 +277,6 @@ class Visualizer {
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
     ctx.lineWidth = 1;
 
-    // Horizontal guidelines
     const step = height / 5;
     for (let y = step; y < height; y += step) {
       ctx.beginPath();
@@ -278,15 +288,15 @@ class Visualizer {
   }
 
   /**
-   * Mode 1: Modern Vertical Bars with Reflection & Bloom
+   * Mode 1: Vertical Bars
    */
-  renderBars(array, minVal, maxVal, state) {
+  renderBars(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
 
     const paddingX = 12;
-    const paddingTop = 26;
-    const paddingBottom = this.enableReflection ? 32 : 12;
+    const paddingTop = 36;
+    const paddingBottom = this.enableReflection ? 32 : 14;
     const usableWidth = width - paddingX * 2;
     const usableHeight = height - paddingTop - paddingBottom;
 
@@ -300,23 +310,21 @@ class Visualizer {
       const x = paddingX + i * (barWidth + barSpacing);
       const y = baselineY - normalizedHeight;
 
-      const isComparing = state.comparing && state.comparing.includes(i);
-      const isSwapping = state.swapping && state.swapping.includes(i);
+      const isComparing = this.hasIndex(state.comparing, i);
+      const isSwapping = this.hasIndex(state.swapping, i);
       const isPivot = state.pivot === i;
-      const isSorted = state.sorted && state.sorted.includes(i);
+      const isSorted = this.hasIndex(state.sorted, i);
       const isHighlighted = isComparing || isSwapping || isPivot || isSorted;
 
       const baseColor = this.getBarColor(val, minVal, maxVal, i, n, state);
 
       ctx.save();
 
-      // Bloom glow on active bars
       if (this.enableBloom && isHighlighted) {
         ctx.shadowColor = baseColor;
         ctx.shadowBlur = isSwapping ? 18 : (isPivot ? 15 : 10);
       }
 
-      // Vertical Linear Gradient for each bar
       const gradient = ctx.createLinearGradient(0, y, 0, baselineY);
       gradient.addColorStop(0, baseColor);
       gradient.addColorStop(1, this.darkenColor(baseColor, 0.45));
@@ -329,7 +337,6 @@ class Visualizer {
         ctx.fillRect(x, y, barWidth, normalizedHeight);
       }
 
-      // Floor Mirror Reflection
       if (this.enableReflection) {
         const reflectionHeight = Math.min(22, normalizedHeight * 0.35);
         const refGradient = ctx.createLinearGradient(0, baselineY, 0, baselineY + reflectionHeight);
@@ -340,18 +347,16 @@ class Visualizer {
         ctx.fillRect(x, baselineY + 2, barWidth, reflectionHeight);
       }
 
-      // Active Top Pointer Triangle on comparison/swap
       if (isComparing || isSwapping || isPivot) {
         this.drawTopPointer(x + barWidth / 2, y - 5, baseColor);
-        if (isSwapping && Math.random() < 0.3) {
+        if (isSwapping && Math.random() < 0.25) {
           this.spawnSparks(x + barWidth / 2, y, baseColor, 3);
         }
       }
 
-      // Value label on small arrays
       if (n <= 35 && barWidth > 14) {
         ctx.fillStyle = '#f8fafc';
-        ctx.font = `600 ${Math.min(11, Math.floor(barWidth * 0.65))}px 'Fira Code', monospace`;
+        ctx.font = `700 ${Math.min(11, Math.floor(barWidth * 0.65))}px 'Fira Code', monospace`;
         ctx.textAlign = 'center';
         ctx.fillText(val, x + barWidth / 2, y - 8);
       }
@@ -361,9 +366,9 @@ class Visualizer {
   }
 
   /**
-   * Mode 2: Polar Radial / Circular Visualizer
+   * Mode 2: Polar Radial / Circular
    */
-  renderRadial(array, minVal, maxVal, state) {
+  renderRadial(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
     const centerX = width / 2;
@@ -372,18 +377,17 @@ class Visualizer {
     const maxRayLength = Math.min(width, height) * 0.32;
     const angleStep = (Math.PI * 2) / n;
 
-    // Draw Center Glow Orb
     ctx.save();
     const orbGradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, innerRadius);
-    orbGradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
-    orbGradient.addColorStop(0.7, 'rgba(15, 23, 42, 0.8)');
+    orbGradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+    orbGradient.addColorStop(0.7, 'rgba(15, 23, 42, 0.85)');
     orbGradient.addColorStop(1, 'rgba(10, 15, 25, 0.95)');
 
     ctx.fillStyle = orbGradient;
     ctx.beginPath();
     ctx.arc(centerX, centerY, innerRadius - 2, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
     ctx.stroke();
     ctx.restore();
 
@@ -393,10 +397,10 @@ class Visualizer {
       const rayLength = innerRadius + ratio * maxRayLength;
       const angle = i * angleStep - Math.PI / 2;
 
-      const isComparing = state.comparing && state.comparing.includes(i);
-      const isSwapping = state.swapping && state.swapping.includes(i);
+      const isComparing = this.hasIndex(state.comparing, i);
+      const isSwapping = this.hasIndex(state.swapping, i);
       const isPivot = state.pivot === i;
-      const isSorted = state.sorted && state.sorted.includes(i);
+      const isSorted = this.hasIndex(state.sorted, i);
 
       const color = this.getBarColor(val, minVal, maxVal, i, n, state);
 
@@ -408,7 +412,7 @@ class Visualizer {
       ctx.save();
       if (this.enableBloom && (isComparing || isSwapping || isPivot || isSorted)) {
         ctx.shadowColor = color;
-        ctx.shadowBlur = isSwapping ? 15 : 8;
+        ctx.shadowBlur = isSwapping ? 16 : 8;
       }
 
       ctx.strokeStyle = color;
@@ -420,10 +424,9 @@ class Visualizer {
       ctx.lineTo(x2, y2);
       ctx.stroke();
 
-      // Glowing outer dot tip
       ctx.fillStyle = color;
       ctx.beginPath();
-      ctx.arc(x2, y2, Math.min(3, ctx.lineWidth / 2), 0, Math.PI * 2);
+      ctx.arc(x2, y2, Math.min(3.5, ctx.lineWidth / 2), 0, Math.PI * 2);
       ctx.fill();
 
       ctx.restore();
@@ -431,14 +434,14 @@ class Visualizer {
   }
 
   /**
-   * Mode 3: Scatter Dots / Constellation
+   * Mode 3: Scatter Dots
    */
-  renderDots(array, minVal, maxVal, state) {
+  renderDots(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
-    const paddingX = 20;
+    const paddingX = 24;
     const usableWidth = width - paddingX * 2;
-    const usableHeight = height - 60;
+    const usableHeight = height - 70;
     const stepX = usableWidth / (n - 1 || 1);
 
     const points = [];
@@ -446,13 +449,12 @@ class Visualizer {
       const val = array[i];
       const ratio = (val - minVal) / (maxVal - minVal || 1);
       const x = paddingX + i * stepX;
-      const y = height - 30 - ratio * usableHeight;
+      const y = height - 35 - ratio * usableHeight;
       points.push({ x, y, val, index: i });
     }
 
-    // Connecting neon line
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     for (let i = 0; i < points.length; i++) {
@@ -462,11 +464,10 @@ class Visualizer {
     ctx.stroke();
     ctx.restore();
 
-    // Render Glowing Dots
     for (const pt of points) {
       const color = this.getBarColor(pt.val, minVal, maxVal, pt.index, n, state);
-      const isComparing = state.comparing && state.comparing.includes(pt.index);
-      const isSwapping = state.swapping && state.swapping.includes(pt.index);
+      const isComparing = this.hasIndex(state.comparing, pt.index);
+      const isSwapping = this.hasIndex(state.swapping, pt.index);
       const isPivot = state.pivot === pt.index;
 
       ctx.save();
@@ -479,7 +480,6 @@ class Visualizer {
       ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Center bright core
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, radius * 0.4, 0, Math.PI * 2);
@@ -490,14 +490,14 @@ class Visualizer {
   }
 
   /**
-   * Mode 4: Smooth Neon Waveform / Ribbon
+   * Mode 4: Waveform Ribbon
    */
-  renderWave(array, minVal, maxVal, state) {
+  renderWave(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
-    const paddingX = 16;
+    const paddingX = 20;
     const usableWidth = width - paddingX * 2;
-    const usableHeight = height - 60;
+    const usableHeight = height - 70;
     const stepX = usableWidth / (n - 1 || 1);
 
     const points = [];
@@ -505,17 +505,16 @@ class Visualizer {
       const val = array[i];
       const ratio = (val - minVal) / (maxVal - minVal || 1);
       const x = paddingX + i * stepX;
-      const y = height - 30 - ratio * usableHeight;
+      const y = height - 35 - ratio * usableHeight;
       points.push({ x, y, val, index: i });
     }
 
     if (points.length < 2) return;
 
-    // Draw Smooth Area Gradient
     ctx.save();
     const areaGradient = ctx.createLinearGradient(0, 0, 0, height);
-    areaGradient.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
-    areaGradient.addColorStop(1, 'rgba(15, 23, 42, 0.0)');
+    areaGradient.addColorStop(0, 'rgba(56, 189, 248, 0.3)');
+    areaGradient.addColorStop(1, 'rgba(10, 15, 26, 0.0)');
 
     ctx.fillStyle = areaGradient;
     ctx.beginPath();
@@ -532,11 +531,10 @@ class Visualizer {
     ctx.closePath();
     ctx.fill();
 
-    // Draw Glowing Spline
     ctx.strokeStyle = '#38bdf8';
     ctx.lineWidth = 3;
     ctx.shadowColor = '#38bdf8';
-    ctx.shadowBlur = 12;
+    ctx.shadowBlur = 14;
 
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
@@ -549,10 +547,9 @@ class Visualizer {
     ctx.stroke();
     ctx.restore();
 
-    // Active Node Highlights
     for (const pt of points) {
-      const isComparing = state.comparing && state.comparing.includes(pt.index);
-      const isSwapping = state.swapping && state.swapping.includes(pt.index);
+      const isComparing = this.hasIndex(state.comparing, pt.index);
+      const isSwapping = this.hasIndex(state.swapping, pt.index);
       if (isComparing || isSwapping) {
         const color = isSwapping ? '#ef4444' : '#f59e0b';
         ctx.save();
@@ -598,18 +595,17 @@ class Visualizer {
     const { ctx } = this;
     const text = `Index ${data.index}: ${data.value}`;
     ctx.save();
-    ctx.font = "600 12px 'Fira Code', monospace";
+    ctx.font = "700 12px 'Fira Code', monospace";
     const textWidth = ctx.measureText(text).width;
-    const boxWidth = textWidth + 18;
-    const boxHeight = 26;
+    const boxWidth = textWidth + 20;
+    const boxHeight = 28;
     const boxX = Math.max(10, Math.min(this.width - boxWidth - 10, data.x - boxWidth / 2));
     const boxY = Math.max(10, data.y - boxHeight - 12);
 
-    // Glass box
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillStyle = 'rgba(10, 15, 26, 0.95)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
     ctx.lineWidth = 1;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
     ctx.shadowBlur = 10;
 
     this.drawRoundedRect(boxX, boxY, boxWidth, boxHeight, 6);
@@ -670,3 +666,4 @@ class Visualizer {
 }
 
 window.Visualizer = Visualizer;
+EOF

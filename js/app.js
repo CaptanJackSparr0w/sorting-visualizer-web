@@ -68,24 +68,26 @@ class AppController {
       soundText: document.getElementById('sound-text'),
       waveformSelect: document.getElementById('waveform-select'),
       btnFullscreen: document.getElementById('btn-fullscreen'),
+      fullscreenText: document.getElementById('fullscreen-text'),
       canvasContainer: document.getElementById('canvas-container'),
       canvasProgress: document.getElementById('canvas-progress'),
 
       // Mode pills & effect chips
-      modeButtons: document.querySelectorAll('.btn-mode'),
+      modeButtons: document.querySelectorAll('.btn-mode-pill'),
       chipBloom: document.getElementById('chip-bloom'),
       chipReflection: document.getElementById('chip-reflection'),
       chipParticles: document.getElementById('chip-particles'),
       chipSpatial: document.getElementById('chip-spatial'),
+      speedPresets: document.querySelectorAll('.btn-speed-preset'),
 
-      // Buttons
+      // Action Buttons
       btnGenerate: document.getElementById('btn-generate'),
       btnStart: document.getElementById('btn-start'),
       btnPause: document.getElementById('btn-pause'),
       btnStep: document.getElementById('btn-step'),
       btnReset: document.getElementById('btn-reset'),
 
-      // Metrics
+      // Metrics & Status
       metricComparisons: document.getElementById('metric-comparisons'),
       metricSwaps: document.getElementById('metric-swaps'),
       metricTime: document.getElementById('metric-time'),
@@ -127,6 +129,7 @@ class AppController {
     this.dom.speedSlider.addEventListener('input', (e) => {
       this.config.speed = parseInt(e.target.value, 10);
       this.dom.speedVal.textContent = `${this.config.speed} ms`;
+      this.updateSpeedPresetsActive(this.config.speed);
     });
 
     this.dom.minValSlider.addEventListener('input', (e) => {
@@ -194,13 +197,23 @@ class AppController {
       this.dom.chipSpatial.classList.toggle('active', active);
     });
 
+    // Speed Presets
+    this.dom.speedPresets.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const speed = parseInt(btn.dataset.speed, 10);
+        this.config.speed = speed;
+        this.dom.speedSlider.value = speed;
+        this.dom.speedVal.textContent = `${speed} ms`;
+        this.updateSpeedPresetsActive(speed);
+      });
+    });
+
     // Audio Controls
     this.dom.soundToggle.addEventListener('click', () => {
       const enabled = this.soundEngine.toggle();
       this.dom.soundIcon.textContent = enabled ? '🔊' : '🔇';
       this.dom.soundText.textContent = enabled ? 'Audio ON' : 'Muted';
-      this.dom.soundToggle.classList.toggle('btn-outline', !enabled);
-      this.dom.soundToggle.classList.toggle('btn-secondary', enabled);
+      this.dom.soundToggle.classList.toggle('active', enabled);
     });
 
     this.dom.waveformSelect.addEventListener('change', (e) => {
@@ -210,10 +223,20 @@ class AppController {
     // Fullscreen Toggle
     this.dom.btnFullscreen.addEventListener('click', () => {
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => console.warn(err));
+        document.documentElement.requestFullscreen().then(() => {
+          this.dom.fullscreenText.textContent = 'Exit Fullscreen';
+        }).catch(err => console.warn(err));
       } else {
-        document.exitFullscreen().catch(err => console.warn(err));
+        document.exitFullscreen().then(() => {
+          this.dom.fullscreenText.textContent = 'Fullscreen';
+        }).catch(err => console.warn(err));
       }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      const isFull = !!document.fullscreenElement;
+      this.dom.fullscreenText.textContent = isFull ? 'Exit Fullscreen' : 'Fullscreen';
+      setTimeout(() => this.visualizer.handleResize(), 100);
     });
 
     // Action Buttons
@@ -245,6 +268,12 @@ class AppController {
       } else if (e.key === 'f' || e.key === 'F') {
         this.dom.btnFullscreen.click();
       }
+    });
+  }
+
+  updateSpeedPresetsActive(speed) {
+    this.dom.speedPresets.forEach(b => {
+      b.classList.toggle('active', parseInt(b.dataset.speed, 10) === speed);
     });
   }
 
@@ -295,6 +324,7 @@ class AppController {
     this.dom.canvasProgress.style.width = '0%';
     this.visualizer.render(this.array, minVal, maxVal);
     this.setStatus('Ready', 'default');
+    this.dom.metricPhase.textContent = 'Idle • Ready to Sort';
   }
 
   async startSort() {
@@ -315,7 +345,6 @@ class AppController {
     const algoFn = SortingAlgorithms[algoKey];
     const n = this.array.length;
 
-    // Estimate total operations for progress calculation
     let estimatedOps = n * Math.log2(n);
     if (['bubbleSort', 'selectionSort', 'insertionSort'].includes(algoKey)) {
       estimatedOps = (n * (n - 1)) / 2;
@@ -335,7 +364,6 @@ class AppController {
           this.dom.metricPhase.textContent = state.phase;
         }
 
-        // Calculate progress percentage
         let progress = 0;
         if (state.sorted && state.sorted.length > 0) {
           progress = (state.sorted.length / n) * 100;
@@ -344,10 +372,8 @@ class AppController {
         }
         this.dom.canvasProgress.style.width = `${Math.min(100, Math.round(progress))}%`;
 
-        // Render Canvas
         this.visualizer.render(this.array, this.config.minVal, this.config.maxVal, state);
 
-        // Sound Synthesis with 3D Spatial Panning
         if (state.swapping && state.swapping.length > 0) {
           const idx = state.swapping[0];
           this.soundEngine.playTone(this.array[idx], this.config.minVal, this.config.maxVal, idx, n, this.config.speed);
@@ -357,7 +383,6 @@ class AppController {
           this.soundEngine.playChord(this.array[idx1], this.array[idx2], this.config.minVal, this.config.maxVal, idx1, idx2, n, this.config.speed);
         }
 
-        // Pause / Step handling
         if (this.isPaused && !this.stepRequested) {
           await new Promise(resolve => {
             this.pausePromiseResolve = resolve;
@@ -365,18 +390,16 @@ class AppController {
         }
         this.stepRequested = false;
 
-        // Dynamic Speed Delay
         await new Promise(resolve => setTimeout(resolve, Math.max(1, this.config.speed)));
       }
     };
 
     try {
       await algoFn(this.array, controller);
-      // Finished successfully!
       this.stopTimer();
       this.dom.canvasProgress.style.width = '100%';
       this.setStatus('Sorting Complete!', 'default');
-      this.dom.metricPhase.textContent = 'Completed';
+      this.dom.metricPhase.textContent = 'Completed 🎉';
       await this.visualizer.playCompletionSweep(this.array, this.config.minVal, this.config.maxVal, this.soundEngine);
     } catch (err) {
       if (err.message === 'SORT_ABORTED') {
@@ -400,18 +423,19 @@ class AppController {
 
     if (this.isPaused) {
       this.dom.btnPause.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         <span>Resume</span>
       `;
-      this.dom.btnPause.className = 'btn btn-primary';
+      this.dom.btnPause.className = 'btn btn-action btn-start';
       this.dom.btnStep.disabled = false;
       this.setStatus('Paused', 'paused');
+      this.dom.metricPhase.textContent = 'Paused • Press Step or Resume';
     } else {
       this.dom.btnPause.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         <span>Pause</span>
       `;
-      this.dom.btnPause.className = 'btn btn-warning';
+      this.dom.btnPause.className = 'btn btn-action btn-pause';
       this.dom.btnStep.disabled = true;
       this.setStatus('Sorting in progress...', 'active');
 
@@ -497,10 +521,10 @@ class AppController {
 
     if (!sortingActive) {
       this.dom.btnPause.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         <span>Pause</span>
       `;
-      this.dom.btnPause.className = 'btn btn-warning';
+      this.dom.btnPause.className = 'btn btn-action btn-pause';
     }
   }
 
