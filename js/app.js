@@ -1,5 +1,5 @@
 /**
- * Sorting Visualizer Studio Controller
+ * Sorting Visualizer Studio Controller (Responsive & Touch Optimized)
  * Coordinates Real-Time Visualizer Engine, Audio Synthesizer, Live Code Stepper, and Playback States.
  */
 
@@ -18,7 +18,7 @@ class AppController {
     this.config = {
       algorithm: 'quickSort',
       preset: 'random',
-      size: 60,
+      size: window.innerWidth < 600 ? 35 : 60,
       speed: 30, // ms delay
       minVal: 10,
       maxVal: 100,
@@ -48,6 +48,12 @@ class AppController {
     this.bindEvents();
     this.renderCodeLines();
     this.updateAlgoInfo();
+
+    if (window.innerWidth < 600) {
+      this.dom.sizeSlider.value = 35;
+      this.dom.sizeVal.textContent = '35';
+    }
+
     this.generateNewArray();
   }
 
@@ -366,12 +372,10 @@ class AppController {
           this.dom.phaseText.textContent = state.phase;
         }
 
-        // Live code execution line highlighting
         if (state.line !== undefined) {
           this.highlightCodeLine(state.line, !!(state.swapping && state.swapping.length > 0));
         }
 
-        // Progress Calculation
         let progress = 0;
         if (state.sorted && state.sorted.length > 0) {
           progress = (state.sorted.length / n) * 100;
@@ -380,10 +384,8 @@ class AppController {
         }
         this.dom.canvasProgress.style.width = `${Math.min(100, Math.round(progress))}%`;
 
-        // Canvas Redraw
         this.visualizer.render(this.array, this.config.minVal, this.config.maxVal, state);
 
-        // Sound Synthesis with Spatial Audio
         if (state.swapping && state.swapping.length > 0) {
           const idx = state.swapping[0];
           this.soundEngine.playTone(this.array[idx], this.config.minVal, this.config.maxVal, idx, n, this.config.speed);
@@ -393,7 +395,6 @@ class AppController {
           this.soundEngine.playChord(this.array[idx1], this.array[idx2], this.config.minVal, this.config.maxVal, idx1, idx2, n, this.config.speed);
         }
 
-        // Pause & Step Interceptor
         if (this.isPaused && !this.stepRequested) {
           await new Promise(resolve => {
             this.pausePromiseResolve = resolve;
@@ -401,7 +402,6 @@ class AppController {
         }
         this.stepRequested = false;
 
-        // Non-blocking dynamic delay
         await new Promise(resolve => setTimeout(resolve, Math.max(1, this.config.speed)));
       }
     };

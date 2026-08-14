@@ -1,11 +1,11 @@
 /**
- * Visualizer Engine 2.0
+ * Visualizer Engine 2.0 (Fully Responsive & Touch-Enabled)
  * Features:
  * - 4 Modes: Vertical Bars, Polar Radial, Scatter Dots, Waveform Ribbon
- * - High-DPI Canvas 2D with automatic ResizeObserver
- * - Ambient Bloom Glow & Particle Sparks
- * - Floor Mirror Reflection & Pointer Indicators
- * - Interactive Mouse Tooltip
+ * - High-DPI Canvas 2D with ResizeObserver & Orientation Adapters
+ * - Touch & Mouse Interactive Inspection Tooltips
+ * - Particle Sparks & Ambient Glow
+ * - Floor Mirror Reflection & Active Pointer Indicators
  */
 
 class Particle {
@@ -62,15 +62,17 @@ class Visualizer {
     this.currentState = {};
 
     this.initCanvas();
-    this.bindMouseEvents();
+    this.bindEvents();
     this.startParticleLoop();
   }
 
   initCanvas() {
     this.handleResize();
     window.addEventListener('resize', () => this.handleResize());
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => this.handleResize(), 150);
+    });
 
-    // ResizeObserver on container to ensure flawless dynamic scaling
     if (window.ResizeObserver && this.canvas.parentElement) {
       const ro = new ResizeObserver(() => this.handleResize());
       ro.observe(this.canvas.parentElement);
@@ -112,17 +114,17 @@ class Visualizer {
     this.enableParticles = enabled;
   }
 
-  bindMouseEvents() {
-    this.canvas.addEventListener('mousemove', (e) => {
+  bindEvents() {
+    const handlePointerMove = (clientX, clientY) => {
       const rect = this.canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
 
       if (this.currentArray && this.mode === 'bars') {
-        const paddingX = 12;
+        const paddingX = this.width < 480 ? 6 : 12;
         const usableWidth = this.width - paddingX * 2;
         const n = this.currentArray.length;
-        const barSpacing = n > 120 ? 1 : (n > 60 ? 2 : 3);
+        const barSpacing = n > 120 ? 1 : (n > 60 ? 2 : (this.width < 480 ? 1.5 : 3));
         const barWidth = Math.max(1, (usableWidth - (n - 1) * barSpacing) / n);
 
         const relativeX = x - paddingX;
@@ -148,9 +150,32 @@ class Visualizer {
           this.render(this.currentArray, this.currentMin, this.currentMax, this.currentState);
         }
       }
+    };
+
+    // Mouse
+    this.canvas.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
+    this.canvas.addEventListener('mouseleave', () => {
+      this.hoverIndex = -1;
+      this.hoverData = null;
+      if (this.currentArray) {
+        this.render(this.currentArray, this.currentMin, this.currentMax, this.currentState);
+      }
     });
 
-    this.canvas.addEventListener('mouseleave', () => {
+    // Touch
+    this.canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length > 0) {
+        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+
+    this.canvas.addEventListener('touchend', () => {
       this.hoverIndex = -1;
       this.hoverData = null;
       if (this.currentArray) {
@@ -288,25 +313,26 @@ class Visualizer {
   }
 
   /**
-   * Mode 1: Vertical Bars
+   * Mode 1: Vertical Bars (Responsive layout)
    */
   renderBars(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
 
-    const paddingX = 12;
-    const paddingTop = 36;
-    const paddingBottom = this.enableReflection ? 32 : 14;
+    const isMobile = width < 600;
+    const paddingX = isMobile ? 6 : 12;
+    const paddingTop = isMobile ? 48 : 36;
+    const paddingBottom = this.enableReflection ? (isMobile ? 24 : 32) : 14;
     const usableWidth = width - paddingX * 2;
     const usableHeight = height - paddingTop - paddingBottom;
 
-    const barSpacing = n > 120 ? 1 : (n > 60 ? 2 : 3);
+    const barSpacing = n > 120 ? 1 : (n > 60 ? 1.5 : (isMobile ? 1.5 : 3));
     const barWidth = Math.max(1, (usableWidth - (n - 1) * barSpacing) / n);
     const baselineY = height - paddingBottom;
 
     for (let i = 0; i < n; i++) {
       const val = array[i];
-      const normalizedHeight = ((val - minVal) / (maxVal - minVal || 1)) * (usableHeight - 20) + 16;
+      const normalizedHeight = ((val - minVal) / (maxVal - minVal || 1)) * (usableHeight - 20) + 14;
       const x = paddingX + i * (barWidth + barSpacing);
       const y = baselineY - normalizedHeight;
 
@@ -338,9 +364,9 @@ class Visualizer {
       }
 
       if (this.enableReflection) {
-        const reflectionHeight = Math.min(22, normalizedHeight * 0.35);
+        const reflectionHeight = Math.min(isMobile ? 16 : 22, normalizedHeight * 0.35);
         const refGradient = ctx.createLinearGradient(0, baselineY, 0, baselineY + reflectionHeight);
-        refGradient.addColorStop(0, this.colorToRgba(baseColor, 0.28));
+        refGradient.addColorStop(0, this.colorToRgba(baseColor, 0.25));
         refGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         ctx.fillStyle = refGradient;
@@ -354,7 +380,7 @@ class Visualizer {
         }
       }
 
-      if (n <= 35 && barWidth > 14) {
+      if (n <= 30 && barWidth > 16) {
         ctx.fillStyle = '#f8fafc';
         ctx.font = `700 ${Math.min(11, Math.floor(barWidth * 0.65))}px 'Fira Code', monospace`;
         ctx.textAlign = 'center';
@@ -371,14 +397,16 @@ class Visualizer {
   renderRadial(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
+    const isMobile = width < 600;
     const centerX = width / 2;
-    const centerY = height / 2;
-    const innerRadius = Math.min(width, height) * 0.16;
-    const maxRayLength = Math.min(width, height) * 0.32;
+    const centerY = (height + (isMobile ? 30 : 10)) / 2;
+    const minDim = Math.min(width, height);
+    const innerRadius = minDim * 0.15;
+    const maxRayLength = minDim * (isMobile ? 0.28 : 0.32);
     const angleStep = (Math.PI * 2) / n;
 
     ctx.save();
-    const orbGradient = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, innerRadius);
+    const orbGradient = ctx.createRadialGradient(centerX, centerY, 4, centerX, centerY, innerRadius);
     orbGradient.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
     orbGradient.addColorStop(0.7, 'rgba(15, 23, 42, 0.85)');
     orbGradient.addColorStop(1, 'rgba(10, 15, 25, 0.95)');
@@ -439,9 +467,10 @@ class Visualizer {
   renderDots(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
-    const paddingX = 24;
+    const isMobile = width < 600;
+    const paddingX = isMobile ? 12 : 24;
     const usableWidth = width - paddingX * 2;
-    const usableHeight = height - 70;
+    const usableHeight = height - (isMobile ? 80 : 70);
     const stepX = usableWidth / (n - 1 || 1);
 
     const points = [];
@@ -475,7 +504,7 @@ class Visualizer {
       ctx.shadowColor = color;
       ctx.shadowBlur = isSwapping ? 18 : (isComparing ? 12 : 6);
 
-      const radius = isSwapping ? 6.5 : (isComparing || isPivot ? 5.5 : 3.5);
+      const radius = isSwapping ? (isMobile ? 5.5 : 6.5) : (isComparing || isPivot ? (isMobile ? 4.5 : 5.5) : (isMobile ? 2.8 : 3.5));
       ctx.beginPath();
       ctx.arc(pt.x, pt.y, radius, 0, Math.PI * 2);
       ctx.fill();
@@ -495,9 +524,10 @@ class Visualizer {
   renderWave(array, minVal, maxVal, state = {}) {
     const { width, height, ctx } = this;
     const n = array.length;
-    const paddingX = 20;
+    const isMobile = width < 600;
+    const paddingX = isMobile ? 12 : 20;
     const usableWidth = width - paddingX * 2;
-    const usableHeight = height - 70;
+    const usableHeight = height - (isMobile ? 80 : 70);
     const stepX = usableWidth / (n - 1 || 1);
 
     const points = [];
@@ -642,13 +672,14 @@ class Visualizer {
       this.render(array, minVal, maxVal, { sorted: [...sorted] });
 
       if (this.enableParticles && i % 3 === 0) {
-        const paddingX = 12;
+        const isMobile = this.width < 600;
+        const paddingX = isMobile ? 6 : 12;
         const usableWidth = this.width - paddingX * 2;
-        const barSpacing = n > 120 ? 1 : (n > 60 ? 2 : 3);
+        const barSpacing = n > 120 ? 1 : (n > 60 ? 1.5 : (isMobile ? 1.5 : 3));
         const barWidth = Math.max(1, (usableWidth - (n - 1) * barSpacing) / n);
         const x = paddingX + i * (barWidth + barSpacing) + barWidth / 2;
         const normalizedHeight = ((array[i] - minVal) / (maxVal - minVal || 1)) * (this.height - 70) + 16;
-        const y = this.height - 32 - normalizedHeight;
+        const y = this.height - (this.enableReflection ? (isMobile ? 24 : 32) : 14) - normalizedHeight;
         this.spawnSparks(x, y, '#10b981', 4);
       }
 
