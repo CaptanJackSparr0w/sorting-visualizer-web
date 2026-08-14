@@ -1,6 +1,6 @@
 /**
- * Main Application Controller
- * Handles UI interactions, state transitions, array generation, and sorting orchestrator.
+ * Main Application Controller 2.0
+ * Handles UI interactions, state transitions, array generation, progress tracking, and sorting orchestrator.
  */
 
 class AppController {
@@ -22,7 +22,12 @@ class AppController {
       speed: 30, // ms delay
       minVal: 10,
       maxVal: 100,
-      theme: 'theme-rainbow'
+      theme: 'theme-rainbow',
+      mode: 'bars',
+      bloom: true,
+      reflection: true,
+      particles: true,
+      spatialAudio: true
     };
 
     // Stats
@@ -62,6 +67,16 @@ class AppController {
       soundIcon: document.getElementById('sound-icon'),
       soundText: document.getElementById('sound-text'),
       waveformSelect: document.getElementById('waveform-select'),
+      btnFullscreen: document.getElementById('btn-fullscreen'),
+      canvasContainer: document.getElementById('canvas-container'),
+      canvasProgress: document.getElementById('canvas-progress'),
+
+      // Mode pills & effect chips
+      modeButtons: document.querySelectorAll('.btn-mode'),
+      chipBloom: document.getElementById('chip-bloom'),
+      chipReflection: document.getElementById('chip-reflection'),
+      chipParticles: document.getElementById('chip-particles'),
+      chipSpatial: document.getElementById('chip-spatial'),
 
       // Buttons
       btnGenerate: document.getElementById('btn-generate'),
@@ -142,17 +157,63 @@ class AppController {
       this.visualizer.render(this.array, this.config.minVal, this.config.maxVal);
     });
 
+    // Mode Switcher Buttons
+    this.dom.modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.dom.modeButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.config.mode = btn.dataset.mode;
+        this.visualizer.setMode(this.config.mode);
+        this.visualizer.render(this.array, this.config.minVal, this.config.maxVal, this.visualizer.currentState || {});
+      });
+    });
+
+    // Visual Effect Toggles
+    this.dom.chipBloom.addEventListener('click', () => {
+      this.config.bloom = !this.config.bloom;
+      this.dom.chipBloom.classList.toggle('active', this.config.bloom);
+      this.visualizer.setBloom(this.config.bloom);
+      this.visualizer.render(this.array, this.config.minVal, this.config.maxVal, this.visualizer.currentState || {});
+    });
+
+    this.dom.chipReflection.addEventListener('click', () => {
+      this.config.reflection = !this.config.reflection;
+      this.dom.chipReflection.classList.toggle('active', this.config.reflection);
+      this.visualizer.setReflection(this.config.reflection);
+      this.visualizer.render(this.array, this.config.minVal, this.config.maxVal, this.visualizer.currentState || {});
+    });
+
+    this.dom.chipParticles.addEventListener('click', () => {
+      this.config.particles = !this.config.particles;
+      this.dom.chipParticles.classList.toggle('active', this.config.particles);
+      this.visualizer.setParticles(this.config.particles);
+    });
+
+    this.dom.chipSpatial.addEventListener('click', () => {
+      const active = this.soundEngine.toggleSpatialPanning();
+      this.dom.chipSpatial.classList.toggle('active', active);
+    });
+
     // Audio Controls
     this.dom.soundToggle.addEventListener('click', () => {
       const enabled = this.soundEngine.toggle();
       this.dom.soundIcon.textContent = enabled ? '🔊' : '🔇';
-      this.dom.soundText.textContent = enabled ? 'Sound ON' : 'Muted';
+      this.dom.soundText.textContent = enabled ? 'Audio ON' : 'Muted';
       this.dom.soundToggle.classList.toggle('btn-outline', !enabled);
       this.dom.soundToggle.classList.toggle('btn-secondary', enabled);
     });
 
     this.dom.waveformSelect.addEventListener('change', (e) => {
       this.soundEngine.setWaveform(e.target.value);
+    });
+
+    // Fullscreen Toggle
+    this.dom.btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => console.warn(err));
+      } else {
+        document.exitFullscreen().catch(err => console.warn(err));
+      }
     });
 
     // Action Buttons
@@ -181,6 +242,8 @@ class AppController {
         this.reset();
       } else if (e.key === 'm' || e.key === 'M') {
         this.dom.soundToggle.click();
+      } else if (e.key === 'f' || e.key === 'F') {
+        this.dom.btnFullscreen.click();
       }
     });
   }
@@ -199,7 +262,6 @@ class AppController {
         const val = Math.round(minVal + (i / size) * (maxVal - minVal));
         this.array.push(val);
       }
-      // Swap ~5% of elements
       const swaps = Math.max(2, Math.floor(size * 0.08));
       for (let s = 0; s < swaps; s++) {
         const i1 = Math.floor(Math.random() * size);
@@ -230,6 +292,7 @@ class AppController {
     }
 
     this.resetStats();
+    this.dom.canvasProgress.style.width = '0%';
     this.visualizer.render(this.array, minVal, maxVal);
     this.setStatus('Ready', 'default');
   }
@@ -246,9 +309,17 @@ class AppController {
     this.startTimer();
     this.updateControlsState(true);
     this.setStatus('Sorting in progress...', 'active');
+    this.dom.canvasProgress.style.width = '0%';
 
     const algoKey = this.config.algorithm;
     const algoFn = SortingAlgorithms[algoKey];
+    const n = this.array.length;
+
+    // Estimate total operations for progress calculation
+    let estimatedOps = n * Math.log2(n);
+    if (['bubbleSort', 'selectionSort', 'insertionSort'].includes(algoKey)) {
+      estimatedOps = (n * (n - 1)) / 2;
+    }
 
     const controller = {
       stats: this.stats,
@@ -264,17 +335,26 @@ class AppController {
           this.dom.metricPhase.textContent = state.phase;
         }
 
+        // Calculate progress percentage
+        let progress = 0;
+        if (state.sorted && state.sorted.length > 0) {
+          progress = (state.sorted.length / n) * 100;
+        } else {
+          progress = Math.min(95, (this.stats.comparisons / estimatedOps) * 100);
+        }
+        this.dom.canvasProgress.style.width = `${Math.min(100, Math.round(progress))}%`;
+
         // Render Canvas
         this.visualizer.render(this.array, this.config.minVal, this.config.maxVal, state);
 
-        // Sound Synthesis
+        // Sound Synthesis with 3D Spatial Panning
         if (state.swapping && state.swapping.length > 0) {
           const idx = state.swapping[0];
-          this.soundEngine.playTone(this.array[idx], this.config.minVal, this.config.maxVal, this.config.speed);
+          this.soundEngine.playTone(this.array[idx], this.config.minVal, this.config.maxVal, idx, n, this.config.speed);
         } else if (state.comparing && state.comparing.length > 0) {
           const idx1 = state.comparing[0];
           const idx2 = state.comparing[1];
-          this.soundEngine.playChord(this.array[idx1], this.array[idx2], this.config.minVal, this.config.maxVal, this.config.speed);
+          this.soundEngine.playChord(this.array[idx1], this.array[idx2], this.config.minVal, this.config.maxVal, idx1, idx2, n, this.config.speed);
         }
 
         // Pause / Step handling
@@ -294,6 +374,7 @@ class AppController {
       await algoFn(this.array, controller);
       // Finished successfully!
       this.stopTimer();
+      this.dom.canvasProgress.style.width = '100%';
       this.setStatus('Sorting Complete!', 'default');
       this.dom.metricPhase.textContent = 'Completed';
       await this.visualizer.playCompletionSweep(this.array, this.config.minVal, this.config.maxVal, this.soundEngine);
@@ -301,6 +382,7 @@ class AppController {
       if (err.message === 'SORT_ABORTED') {
         this.setStatus('Reset / Aborted', 'default');
         this.dom.metricPhase.textContent = 'Idle';
+        this.dom.canvasProgress.style.width = '0%';
       } else {
         console.error('Sorting execution error:', err);
       }
@@ -318,7 +400,7 @@ class AppController {
 
     if (this.isPaused) {
       this.dom.btnPause.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         <span>Resume</span>
       `;
       this.dom.btnPause.className = 'btn btn-primary';
@@ -326,7 +408,7 @@ class AppController {
       this.setStatus('Paused', 'paused');
     } else {
       this.dom.btnPause.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         <span>Pause</span>
       `;
       this.dom.btnPause.className = 'btn btn-warning';
@@ -361,6 +443,7 @@ class AppController {
     this.isPaused = false;
     this.stopTimer();
     this.resetStats();
+    this.dom.canvasProgress.style.width = '0%';
     this.updateControlsState(false);
     this.generateNewArray();
   }
@@ -414,7 +497,7 @@ class AppController {
 
     if (!sortingActive) {
       this.dom.btnPause.innerHTML = `
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         <span>Pause</span>
       `;
       this.dom.btnPause.className = 'btn btn-warning';
