@@ -1,0 +1,20 @@
+{
+  "name": "sorting-visualizer-web",
+  "version": "1.0.0",
+  "description": "Interactive web application for visualizing sorting algorithms with Web Audio API synthesis and HSV gradients.",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "npx serve ."
+  },
+  "keywords": [
+    "sorting",
+    "algorithms",
+    "visualizer",
+    "web-audio-api",
+    "canvas",
+    "data-structures"
+  ],
+  "author": "",
+  "license": "MIT"
+}
