@@ -527,7 +527,6 @@ class Visualizer {
       ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
     }
     ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
-    ctx.lineTo(points[points.length - 1].x, height);
     ctx.closePath();
     ctx.fill();
 

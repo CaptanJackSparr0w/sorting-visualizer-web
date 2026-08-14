@@ -3,328 +3,317 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sorting Visualizer - Interactive Web App</title>
-  <meta name="description" content="A feature-packed, high-performance interactive web application for visualizing sorting algorithms with real-time sound synthesis, HSV rainbow gradients, and live metrics." />
+  <title>Sorting Visualizer Studio - Interactive Algorithm Analysis</title>
+  <meta name="description" content="A state-of-the-art interactive web application for visualizing sorting algorithms with real-time Web Audio API sound synthesis, HSV rainbow gradients, and live code execution." />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/themes.css" />
   <!-- Google Fonts for crisp typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body class="theme-rainbow">
-  <div class="app-container">
-    <!-- Header -->
+  <div class="app-wrapper">
+    <!-- Top Navigation Header -->
     <header class="app-header">
       <div class="brand">
         <div class="brand-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="20" x2="18" y2="10"></line>
             <line x1="12" y1="20" x2="12" y2="4"></line>
             <line x1="6" y1="20" x2="6" y2="14"></line>
           </svg>
         </div>
         <div class="brand-text">
-          <h1>Sorting Visualizer<span>.io</span></h1>
-          <p class="subtitle">Interactive Algorithm Analysis & Web Audio Synthesis</p>
+          <h1>Sorting Visualizer<span>.studio</span></h1>
+          <p class="subtitle">Algorithm Analysis & Web Audio Synthesis</p>
         </div>
       </div>
 
-      <div class="header-badges">
+      <div class="header-right">
         <div class="status-indicator">
           <span class="status-dot" id="status-dot"></span>
-          <span id="status-text">Ready</span>
+          <span id="status-text">Ready to Sort</span>
         </div>
-        <button id="btn-fullscreen" class="btn-header" type="button" title="Toggle Fullscreen Mode">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-          <span id="fullscreen-text">Fullscreen</span>
-        </button>
-        <a href="https://github.com/CaptanJackSparr0w/Sorting-Visualiser.io" target="_blank" rel="noopener noreferrer" class="btn-header" title="Original Python Tkinter Repository">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-          </svg>
-          <span>Python Repo</span>
-        </a>
+
+        <div class="header-actions">
+          <div class="theme-picker-wrapper">
+            <span class="theme-picker-label">Theme:</span>
+            <select id="theme-select" class="select-theme" title="Color Theme">
+              <option value="theme-rainbow" selected>🌈 Rainbow HSV</option>
+              <option value="theme-cyberpunk">⚡ Cyberpunk 2077</option>
+              <option value="theme-aurora">🌌 Aurora Borealis</option>
+              <option value="theme-sunset">🌇 Sunset Retrowave</option>
+              <option value="theme-matrix">🟢 Matrix Terminal</option>
+              <option value="theme-glacier">❄️ Arctic Glacier</option>
+            </select>
+          </div>
+
+          <button id="btn-fullscreen" class="btn-icon" type="button" title="Toggle Fullscreen">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            <span id="fullscreen-text">Fullscreen</span>
+          </button>
+
+          <a href="https://github.com/CaptanJackSparr0w/Sorting-Visualiser.io" target="_blank" rel="noopener noreferrer" class="btn-icon" title="Original Python Repository">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+            <span>Python Repo</span>
+          </a>
+        </div>
       </div>
     </header>
 
-    <!-- Main Workspace -->
+    <!-- Main Workspace Stage -->
     <main class="app-main">
-      <!-- Top Control Cards Grid -->
-      <section class="controls-panel">
-        <!-- Card 1: Algorithm & Pattern -->
-        <div class="control-card">
-          <div class="card-title">
-            <span class="card-title-icon">⚙️</span>
-            <span>Algorithm & Order</span>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="algorithm-select">Sorting Algorithm</label>
-              <select id="algorithm-select" class="select-input">
-                <option value="quickSort" selected>Quick Sort</option>
-                <option value="mergeSort">Merge Sort</option>
-                <option value="bubbleSort">Bubble Sort</option>
-                <option value="selectionSort">Selection Sort</option>
-                <option value="insertionSort">Insertion Sort</option>
-                <option value="heapSort">Heap Sort</option>
-                <option value="shellSort">Shell Sort</option>
-                <option value="bogoSort">Bogo Sort (Random)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="preset-select">Initial Pattern</label>
-              <select id="preset-select" class="select-input">
-                <option value="random" selected>Randomized</option>
-                <option value="nearlySorted">Nearly Sorted</option>
-                <option value="reversed">Reversed / Inverted</option>
-                <option value="fewUnique">Few Unique Values</option>
-                <option value="sawtooth">Sawtooth Wave</option>
-              </select>
-            </div>
-          </div>
+      <!-- Section 1: Algorithm Selector Deck -->
+      <section class="algo-deck">
+        <div class="algo-pills-scroll">
+          <button class="algo-pill active" data-algo="quickSort" type="button">
+            <span class="algo-name">Quick Sort</span>
+            <span class="algo-tag">O(n log n)</span>
+          </button>
+          <button class="algo-pill" data-algo="mergeSort" type="button">
+            <span class="algo-name">Merge Sort</span>
+            <span class="algo-tag">O(n log n)</span>
+          </button>
+          <button class="algo-pill" data-algo="heapSort" type="button">
+            <span class="algo-name">Heap Sort</span>
+            <span class="algo-tag">O(n log n)</span>
+          </button>
+          <button class="algo-pill" data-algo="bubbleSort" type="button">
+            <span class="algo-name">Bubble Sort</span>
+            <span class="algo-tag">O(n²)</span>
+          </button>
+          <button class="algo-pill" data-algo="selectionSort" type="button">
+            <span class="algo-name">Selection Sort</span>
+            <span class="algo-tag">O(n²)</span>
+          </button>
+          <button class="algo-pill" data-algo="insertionSort" type="button">
+            <span class="algo-name">Insertion Sort</span>
+            <span class="algo-tag">O(n²)</span>
+          </button>
+          <button class="algo-pill" data-algo="shellSort" type="button">
+            <span class="algo-name">Shell Sort</span>
+            <span class="algo-tag">O(n^(4/3))</span>
+          </button>
+          <button class="algo-pill" data-algo="bogoSort" type="button">
+            <span class="algo-name">Bogo Sort</span>
+            <span class="algo-tag">O(n!)</span>
+          </button>
         </div>
 
-        <!-- Card 2: Array Parameters -->
-        <div class="control-card">
-          <div class="card-title">
-            <span class="card-title-icon">📊</span>
-            <span>Array Configuration</span>
-          </div>
-          <div class="sliders-grid">
-            <div class="slider-group">
-              <div class="slider-header">
-                <label for="size-slider">Array Size</label>
-                <span class="slider-val" id="size-val">60</span>
-              </div>
-              <input type="range" id="size-slider" min="10" max="250" value="60" class="range-slider" />
-            </div>
-
-            <div class="slider-group">
-              <div class="slider-header">
-                <label for="speed-slider">Speed / Delay</label>
-                <span class="slider-val" id="speed-val">30 ms</span>
-              </div>
-              <input type="range" id="speed-slider" min="1" max="200" value="30" class="range-slider" />
-            </div>
-
-            <div class="slider-group">
-              <div class="slider-header">
-                <label for="min-val-slider">Min Value</label>
-                <span class="slider-val" id="min-val-label">10</span>
-              </div>
-              <input type="range" id="min-val-slider" min="1" max="50" value="10" class="range-slider" />
-            </div>
-
-            <div class="slider-group">
-              <div class="slider-header">
-                <label for="max-val-slider">Max Value</label>
-                <span class="slider-val" id="max-val-label">100</span>
-              </div>
-              <input type="range" id="max-val-slider" min="60" max="200" value="100" class="range-slider" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 3: Theme & Audio -->
-        <div class="control-card">
-          <div class="card-title">
-            <span class="card-title-icon">🎨</span>
-            <span>Palette & Audio</span>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="theme-select">Color Theme</label>
-              <select id="theme-select" class="select-input">
-                <option value="theme-rainbow" selected>Original Rainbow HSV</option>
-                <option value="theme-cyberpunk">Cyberpunk Neon</option>
-                <option value="theme-aurora">Aurora Borealis</option>
-                <option value="theme-sunset">Sunset Retrowave</option>
-                <option value="theme-matrix">Matrix Terminal</option>
-                <option value="theme-glacier">Glacier Ice</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Synthesizer Audio</label>
-              <div class="audio-btn-row">
-                <button id="btn-sound-toggle" type="button" class="btn btn-audio active" title="Toggle audio synthesizer">
-                  <span id="sound-icon">🔊</span>
-                  <span id="sound-text">Audio ON</span>
-                </button>
-                <select id="waveform-select" class="select-input select-sm" title="Synthesizer Waveform">
-                  <option value="triangle" selected>Triangle</option>
-                  <option value="sine">Sine</option>
-                  <option value="sawtooth">Sawtooth</option>
-                  <option value="square">Square</option>
-                </select>
-              </div>
-            </div>
+        <div class="preset-strip">
+          <span class="preset-strip-title">Data Preset:</span>
+          <div class="preset-buttons">
+            <button class="btn-preset active" data-preset="random" type="button">Randomized</button>
+            <button class="btn-preset" data-preset="nearlySorted" type="button">Nearly Sorted</button>
+            <button class="btn-preset" data-preset="reversed" type="button">Reversed</button>
+            <button class="btn-preset" data-preset="fewUnique" type="button">Few Unique</button>
+            <button class="btn-preset" data-preset="pyramid" type="button">Pyramid</button>
+            <button class="btn-preset" data-preset="sawtooth" type="button">Sawtooth</button>
           </div>
         </div>
       </section>
 
-      <!-- Prominent Main Action Deck -->
-      <section class="action-deck">
-        <div class="action-deck-buttons">
-          <button id="btn-generate" type="button" class="btn btn-action btn-gen" title="Generate New Array (Key: G)">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-            <span>Generate New Array</span>
-          </button>
-          <button id="btn-start" type="button" class="btn btn-action btn-start" title="Start Sorting (Key: S or Space)">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <span>Start Sorting</span>
-          </button>
-          <button id="btn-pause" type="button" class="btn btn-action btn-pause" disabled title="Pause / Resume (Key: Space)">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-            <span>Pause</span>
-          </button>
-          <button id="btn-step" type="button" class="btn btn-action btn-step" disabled title="Step Forward 1 Comparison/Swap">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-            <span>Step Forward</span>
-          </button>
-          <button id="btn-reset" type="button" class="btn btn-action btn-reset" title="Reset & Cancel (Key: R)">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-            <span>Reset</span>
-          </button>
-        </div>
-      </section>
+      <!-- Section 2: Visualizer Arena (Hero Stage) -->
+      <section class="stage-section">
+        <div class="stage-container" id="stage-box">
+          <!-- Top HUD Overlay -->
+          <div class="stage-hud-top">
+            <div class="hud-left">
+              <div class="phase-chip" id="metric-phase">
+                <span class="phase-pulse"></span>
+                <span id="phase-text">Idle &bull; Ready to Sort</span>
+              </div>
+            </div>
 
-      <!-- Live Visualization Deck -->
-      <section class="visualizer-section">
-        <!-- Visualizer Mode Bar & FX Toggles -->
-        <div class="viz-toolbar">
-          <div class="toolbar-group">
-            <span class="toolbar-label">VIEW MODE:</span>
-            <div class="mode-pills-bar">
-              <button class="btn-mode-pill active" type="button" data-mode="bars">
-                <span class="mode-icon">📊</span>
-                <span>Vertical Bars</span>
-              </button>
-              <button class="btn-mode-pill" type="button" data-mode="radial">
-                <span class="mode-icon">🔘</span>
-                <span>Polar Radial</span>
-              </button>
-              <button class="btn-mode-pill" type="button" data-mode="dots">
-                <span class="mode-icon">✨</span>
-                <span>Scatter Dots</span>
-              </button>
-              <button class="btn-mode-pill" type="button" data-mode="wave">
-                <span class="mode-icon">🌊</span>
-                <span>Wave Ribbon</span>
-              </button>
+            <div class="hud-center">
+              <div class="speed-dial">
+                <span class="hud-label">Speed:</span>
+                <button class="btn-speed-pill" data-speed="80" type="button">0.5x</button>
+                <button class="btn-speed-pill active" data-speed="30" type="button">1x</button>
+                <button class="btn-speed-pill" data-speed="10" type="button">3x</button>
+                <button class="btn-speed-pill" data-speed="1" type="button">Max</button>
+              </div>
+            </div>
+
+            <div class="hud-right">
+              <div class="mode-switcher-hud">
+                <button class="btn-mode-hud active" data-mode="bars" type="button" title="Vertical Bars">📊 Bars</button>
+                <button class="btn-mode-hud" data-mode="radial" type="button" title="Polar Radial">🔘 Radial</button>
+                <button class="btn-mode-hud" data-mode="dots" type="button" title="Scatter Dots">✨ Dots</button>
+                <button class="btn-mode-hud" data-mode="wave" type="button" title="Waveform Ribbon">🌊 Wave</button>
+              </div>
             </div>
           </div>
 
-          <div class="toolbar-group">
-            <span class="toolbar-label">EFFECTS:</span>
-            <div class="fx-toggles-bar">
-              <button class="btn-fx-toggle active" id="chip-bloom" type="button">
-                <span class="fx-dot"></span>
-                <span>Bloom Glow</span>
-              </button>
-              <button class="btn-fx-toggle active" id="chip-reflection" type="button">
-                <span class="fx-dot"></span>
-                <span>Reflection</span>
-              </button>
-              <button class="btn-fx-toggle active" id="chip-particles" type="button">
-                <span class="fx-dot"></span>
-                <span>Sparks</span>
-              </button>
-              <button class="btn-fx-toggle active" id="chip-spatial" type="button">
-                <span class="fx-dot"></span>
-                <span>3D Audio</span>
-              </button>
-            </div>
-          </div>
-        </div>
+          <!-- Progress Top Line -->
+          <div class="stage-progress-bar" id="canvas-progress"></div>
 
-        <!-- Canvas Container with Progress Bar -->
-        <div class="canvas-wrapper" id="canvas-container">
-          <div class="canvas-top-overlay">
-            <div class="phase-badge" id="metric-phase">Idle &bull; Ready to Sort</div>
-            <div class="speed-presets">
-              <span class="preset-label">Speed:</span>
-              <button class="btn-speed-preset" data-speed="80" type="button">0.5x</button>
-              <button class="btn-speed-preset active" data-speed="30" type="button">1x</button>
-              <button class="btn-speed-preset" data-speed="10" type="button">3x</button>
-              <button class="btn-speed-preset" data-speed="1" type="button">Max</button>
-            </div>
-          </div>
-
-          <div class="canvas-progress-bar" id="canvas-progress"></div>
+          <!-- Canvas Element -->
           <canvas id="sorting-canvas"></canvas>
 
-          <div class="canvas-legend">
-            <span class="legend-item"><span class="legend-dot dot-default"></span> Normal Elements</span>
-            <span class="legend-item"><span class="legend-dot dot-comparing"></span> Comparing</span>
-            <span class="legend-item"><span class="legend-dot dot-swapping"></span> Swapping / Writing</span>
-            <span class="legend-item"><span class="legend-dot dot-pivot"></span> Pivot / Min</span>
-            <span class="legend-item"><span class="legend-dot dot-sorted"></span> Sorted</span>
-          </div>
-        </div>
+          <!-- Stage Bottom Bar: Telemetry & Legend -->
+          <div class="stage-hud-bottom">
+            <div class="telemetry-bar">
+              <div class="telemetry-item">
+                <span class="telemetry-label">Comparisons:</span>
+                <span class="telemetry-value" id="metric-comparisons">0</span>
+              </div>
+              <div class="telemetry-separator">/</div>
+              <div class="telemetry-item">
+                <span class="telemetry-label">Swaps & Writes:</span>
+                <span class="telemetry-value" id="metric-swaps">0</span>
+              </div>
+              <div class="telemetry-separator">/</div>
+              <div class="telemetry-item">
+                <span class="telemetry-label">Time:</span>
+                <span class="telemetry-value" id="metric-time">0.00 s</span>
+              </div>
+            </div>
 
-        <!-- Live Metrics Banner -->
-        <div class="metrics-bar">
-          <div class="metric-item">
-            <span class="metric-label">Comparisons</span>
-            <span class="metric-value" id="metric-comparisons">0</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">Array Accesses / Swaps</span>
-            <span class="metric-value" id="metric-swaps">0</span>
-          </div>
-          <div class="metric-item">
-            <span class="metric-label">Elapsed Time</span>
-            <span class="metric-value" id="metric-time">0.00 s</span>
+            <div class="stage-legend">
+              <span class="legend-item"><span class="legend-dot dot-default"></span> Normal</span>
+              <span class="legend-item"><span class="legend-dot dot-comparing"></span> Comparing</span>
+              <span class="legend-item"><span class="legend-dot dot-swapping"></span> Swapping</span>
+              <span class="legend-item"><span class="legend-dot dot-pivot"></span> Pivot</span>
+              <span class="legend-item"><span class="legend-dot dot-sorted"></span> Sorted</span>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Algorithm Info & Complexity Card -->
-      <section class="info-section">
-        <div class="info-card">
-          <div class="info-header">
-            <div class="info-title-group">
-              <h2 id="algo-info-title">Quick Sort</h2>
-              <span class="algo-badge" id="algo-category">Divide & Conquer</span>
+      <!-- Section 3: Floating Command Studio Dock -->
+      <section class="command-dock">
+        <div class="dock-panel">
+          <!-- Primary Actions -->
+          <div class="dock-group dock-actions">
+            <button id="btn-generate" type="button" class="btn-dock btn-dock-gen" title="Generate New Dataset (G)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              <span>New Data</span>
+            </button>
+            <button id="btn-start" type="button" class="btn-dock btn-dock-start" title="Start Sorting (Space / S)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <span>Start Sort</span>
+            </button>
+            <button id="btn-pause" type="button" class="btn-dock btn-dock-pause" disabled title="Pause / Resume (Space)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+              <span>Pause</span>
+            </button>
+            <button id="btn-step" type="button" class="btn-dock btn-dock-step" disabled title="Single Step Forward">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+              <span>Step</span>
+            </button>
+            <button id="btn-reset" type="button" class="btn-dock btn-dock-reset" title="Reset & Reinitialize (R)">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <div class="dock-divider"></div>
+
+          <!-- Parameter Sliders -->
+          <div class="dock-group dock-sliders">
+            <div class="slider-box">
+              <div class="slider-head">
+                <span class="slider-title">Size</span>
+                <span class="slider-badge" id="size-val">60</span>
+              </div>
+              <input type="range" id="size-slider" min="10" max="250" value="60" class="dock-range" />
             </div>
-            <div class="complexity-pills">
-              <div class="pill">
-                <span class="pill-label">Best:</span>
-                <span class="pill-value" id="algo-best">O(n log n)</span>
+
+            <div class="slider-box">
+              <div class="slider-head">
+                <span class="slider-title">Delay</span>
+                <span class="slider-badge" id="speed-val">30 ms</span>
               </div>
-              <div class="pill">
-                <span class="pill-label">Average:</span>
-                <span class="pill-value" id="algo-avg">O(n log n)</span>
+              <input type="range" id="speed-slider" min="1" max="200" value="30" class="dock-range" />
+            </div>
+          </div>
+
+          <div class="dock-divider"></div>
+
+          <!-- Audio & Visual FX Toggles -->
+          <div class="dock-group dock-fx">
+            <button id="btn-sound-toggle" type="button" class="dock-toggle-btn active" title="Toggle Musical Audio">
+              <span id="sound-icon">🔊</span>
+              <span id="sound-text">Audio ON</span>
+            </button>
+            <select id="waveform-select" class="dock-select-mini" title="Harmonic Waveform">
+              <option value="triangle" selected>Triangle</option>
+              <option value="sine">Sine</option>
+              <option value="sawtooth">Sawtooth</option>
+              <option value="square">Square</option>
+            </select>
+            <button id="chip-bloom" type="button" class="dock-toggle-btn active" title="Bloom Luminescence">✨ Bloom</button>
+            <button id="chip-reflection" type="button" class="dock-toggle-btn active" title="Floor Reflection">🌊 Mirror</button>
+            <button id="chip-particles" type="button" class="dock-toggle-btn active" title="Particle Sparks">🎆 Sparks</button>
+            <button id="chip-spatial" type="button" class="dock-toggle-btn active" title="3D Stereo Panning">🎧 3D Pan</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Live Code Execution & Complexity Deep Dive -->
+      <section class="intel-section">
+        <div class="intel-grid">
+          <!-- Real-Time Code Execution Stepper -->
+          <div class="intel-card code-card">
+            <div class="intel-card-header">
+              <div class="intel-title-group">
+                <span class="intel-icon">💻</span>
+                <h3>Real-Time Code Execution</h3>
               </div>
-              <div class="pill">
-                <span class="pill-label">Worst:</span>
-                <span class="pill-value" id="algo-worst">O(n²)</span>
-              </div>
-              <div class="pill">
-                <span class="pill-label">Space:</span>
-                <span class="pill-value" id="algo-space">O(log n)</span>
-              </div>
-              <div class="pill">
-                <span class="pill-label">Stable:</span>
-                <span class="pill-value" id="algo-stable">No</span>
+              <span class="live-tag">LIVE STEPPER</span>
+            </div>
+            <div class="code-execution-box">
+              <div class="code-lines-container" id="code-lines-list">
+                <!-- Dynamically generated syntax lines with active line lighting -->
               </div>
             </div>
           </div>
-          <div class="info-body">
-            <p id="algo-description">
-              Quick Sort is an efficient, in-place, divide-and-conquer sorting algorithm. It works by selecting a 'pivot' element from the array and partitioning the other elements into two sub-arrays according to whether they are less than or greater than the pivot.
-            </p>
-            <div class="code-preview">
-              <div class="code-header">Pseudocode / Core Implementation</div>
-              <pre><code id="algo-pseudocode">// Quick Sort Partitioning Step
-function quickSort(arr, low, high) {
-  if (low < high) {
-    let pi = partition(arr, low, high);
-    quickSort(arr, low, pi - 1);
-    quickSort(arr, pi + 1, high);
-  }
-}</code></pre>
+
+          <!-- Algorithm Intelligence & Complexity Matrix -->
+          <div class="intel-card matrix-card">
+            <div class="intel-card-header">
+              <div class="intel-title-group">
+                <span class="intel-icon">🧠</span>
+                <h3 id="algo-info-title">Quick Sort</h3>
+              </div>
+              <span class="algo-badge" id="algo-category">Divide & Conquer</span>
+            </div>
+
+            <div class="complexity-matrix-grid">
+              <div class="matrix-tile">
+                <span class="tile-label">Best Time</span>
+                <span class="tile-value highlight-green" id="algo-best">O(n log n)</span>
+              </div>
+              <div class="matrix-tile">
+                <span class="tile-label">Average Time</span>
+                <span class="tile-value highlight-blue" id="algo-avg">O(n log n)</span>
+              </div>
+              <div class="matrix-tile">
+                <span class="tile-label">Worst Time</span>
+                <span class="tile-value highlight-amber" id="algo-worst">O(n²)</span>
+              </div>
+              <div class="matrix-tile">
+                <span class="tile-label">Space Complexity</span>
+                <span class="tile-value highlight-purple" id="algo-space">O(log n)</span>
+              </div>
+              <div class="matrix-tile">
+                <span class="tile-label">Stable Sort</span>
+                <span class="tile-value" id="algo-stable">No</span>
+              </div>
+              <div class="matrix-tile">
+                <span class="tile-label">In-Place</span>
+                <span class="tile-value highlight-green" id="algo-inplace">Yes</span>
+              </div>
+            </div>
+
+            <div class="algo-explanation-box">
+              <p id="algo-description">
+                Quick Sort is an efficient, in-place divide-and-conquer algorithm. It selects a pivot, partitions elements around the pivot, and recursively sorts the sub-arrays.
+              </p>
             </div>
           </div>
         </div>
@@ -333,9 +322,14 @@ function quickSort(arr, low, high) {
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>Deployed as a Modern Web Application. Based on the original architecture by <strong>CaptanJackSparr0w/Sorting-Visualiser.io</strong>.</p>
-      <div class="footer-links">
-        <span>Keyboard Shortcuts: <kbd>Space</kbd> Play/Pause &bull; <kbd>G</kbd> Generate &bull; <kbd>S</kbd> Sort &bull; <kbd>R</kbd> Reset &bull; <kbd>M</kbd> Mute &bull; <kbd>F</kbd> Fullscreen</span>
+      <p>Modernized Web Application port of <a href="https://github.com/CaptanJackSparr0w/Sorting-Visualiser.io" target="_blank" rel="noopener noreferrer">CaptanJackSparr0w/Sorting-Visualiser.io</a></p>
+      <div class="footer-keys">
+        <span><kbd>Space</kbd> Play / Pause</span>
+        <span><kbd>G</kbd> New Data</span>
+        <span><kbd>S</kbd> Sort</span>
+        <span><kbd>R</kbd> Reset</span>
+        <span><kbd>M</kbd> Mute Audio</span>
+        <span><kbd>F</kbd> Fullscreen</span>
       </div>
     </footer>
   </div>

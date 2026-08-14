@@ -1,6 +1,6 @@
 /**
- * Main Application Controller 2.0
- * Handles UI interactions, state transitions, array generation, progress tracking, and sorting orchestrator.
+ * Sorting Visualizer Studio Controller
+ * Coordinates Real-Time Visualizer Engine, Audio Synthesizer, Live Code Stepper, and Playback States.
  */
 
 class AppController {
@@ -46,56 +46,60 @@ class AppController {
     this.cacheDom();
     this.visualizer = new Visualizer('sorting-canvas');
     this.bindEvents();
+    this.renderCodeLines();
     this.updateAlgoInfo();
     this.generateNewArray();
   }
 
   cacheDom() {
     this.dom = {
-      algoSelect: document.getElementById('algorithm-select'),
-      presetSelect: document.getElementById('preset-select'),
-      sizeSlider: document.getElementById('size-slider'),
-      sizeVal: document.getElementById('size-val'),
-      speedSlider: document.getElementById('speed-slider'),
-      speedVal: document.getElementById('speed-val'),
-      minValSlider: document.getElementById('min-val-slider'),
-      minValLabel: document.getElementById('min-val-label'),
-      maxValSlider: document.getElementById('max-val-slider'),
-      maxValLabel: document.getElementById('max-val-label'),
+      // Header
       themeSelect: document.getElementById('theme-select'),
-      soundToggle: document.getElementById('btn-sound-toggle'),
-      soundIcon: document.getElementById('sound-icon'),
-      soundText: document.getElementById('sound-text'),
-      waveformSelect: document.getElementById('waveform-select'),
       btnFullscreen: document.getElementById('btn-fullscreen'),
       fullscreenText: document.getElementById('fullscreen-text'),
-      canvasContainer: document.getElementById('canvas-container'),
+      statusDot: document.getElementById('status-dot'),
+      statusText: document.getElementById('status-text'),
+
+      // Algorithm & Preset Pills
+      algoPills: document.querySelectorAll('.algo-pill'),
+      presetButtons: document.querySelectorAll('.btn-preset'),
+
+      // Stage Overlay HUD
+      phaseText: document.getElementById('phase-text'),
+      speedPills: document.querySelectorAll('.btn-speed-pill'),
+      modeButtons: document.querySelectorAll('.btn-mode-hud'),
       canvasProgress: document.getElementById('canvas-progress'),
 
-      // Mode pills & effect chips
-      modeButtons: document.querySelectorAll('.btn-mode-pill'),
-      chipBloom: document.getElementById('chip-bloom'),
-      chipReflection: document.getElementById('chip-reflection'),
-      chipParticles: document.getElementById('chip-particles'),
-      chipSpatial: document.getElementById('chip-spatial'),
-      speedPresets: document.querySelectorAll('.btn-speed-preset'),
+      // Telemetry
+      metricComparisons: document.getElementById('metric-comparisons'),
+      metricSwaps: document.getElementById('metric-swaps'),
+      metricTime: document.getElementById('metric-time'),
 
-      // Action Buttons
+      // Dock Actions
       btnGenerate: document.getElementById('btn-generate'),
       btnStart: document.getElementById('btn-start'),
       btnPause: document.getElementById('btn-pause'),
       btnStep: document.getElementById('btn-step'),
       btnReset: document.getElementById('btn-reset'),
 
-      // Metrics & Status
-      metricComparisons: document.getElementById('metric-comparisons'),
-      metricSwaps: document.getElementById('metric-swaps'),
-      metricTime: document.getElementById('metric-time'),
-      metricPhase: document.getElementById('metric-phase'),
-      statusDot: document.getElementById('status-dot'),
-      statusText: document.getElementById('status-text'),
+      // Dock Sliders
+      sizeSlider: document.getElementById('size-slider'),
+      sizeVal: document.getElementById('size-val'),
+      speedSlider: document.getElementById('speed-slider'),
+      speedVal: document.getElementById('speed-val'),
 
-      // Info Card
+      // Dock Audio & FX
+      soundToggle: document.getElementById('btn-sound-toggle'),
+      soundIcon: document.getElementById('sound-icon'),
+      soundText: document.getElementById('sound-text'),
+      waveformSelect: document.getElementById('waveform-select'),
+      chipBloom: document.getElementById('chip-bloom'),
+      chipReflection: document.getElementById('chip-reflection'),
+      chipParticles: document.getElementById('chip-particles'),
+      chipSpatial: document.getElementById('chip-spatial'),
+
+      // Intelligence & Code Stepper
+      codeLinesList: document.getElementById('code-lines-list'),
       algoTitle: document.getElementById('algo-info-title'),
       algoCategory: document.getElementById('algo-category'),
       algoBest: document.getElementById('algo-best'),
@@ -103,64 +107,36 @@ class AppController {
       algoWorst: document.getElementById('algo-worst'),
       algoSpace: document.getElementById('algo-space'),
       algoStable: document.getElementById('algo-stable'),
-      algoDesc: document.getElementById('algo-description'),
-      algoCode: document.getElementById('algo-pseudocode')
+      algoInPlace: document.getElementById('algo-inplace'),
+      algoDesc: document.getElementById('algo-description')
     };
   }
 
   bindEvents() {
-    // Config Changes
-    this.dom.algoSelect.addEventListener('change', (e) => {
-      this.config.algorithm = e.target.value;
-      this.updateAlgoInfo();
+    // 1. Algorithm Selection Pills
+    this.dom.algoPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        if (this.isRunning) return;
+        this.dom.algoPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        this.config.algorithm = pill.dataset.algo;
+        this.updateAlgoInfo();
+        this.renderCodeLines();
+      });
     });
 
-    this.dom.presetSelect.addEventListener('change', (e) => {
-      this.config.preset = e.target.value;
-      if (!this.isRunning) this.generateNewArray();
+    // 2. Preset Selection
+    this.dom.presetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (this.isRunning) return;
+        this.dom.presetButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        this.config.preset = btn.dataset.preset;
+        this.generateNewArray();
+      });
     });
 
-    this.dom.sizeSlider.addEventListener('input', (e) => {
-      this.config.size = parseInt(e.target.value, 10);
-      this.dom.sizeVal.textContent = this.config.size;
-      if (!this.isRunning) this.generateNewArray();
-    });
-
-    this.dom.speedSlider.addEventListener('input', (e) => {
-      this.config.speed = parseInt(e.target.value, 10);
-      this.dom.speedVal.textContent = `${this.config.speed} ms`;
-      this.updateSpeedPresetsActive(this.config.speed);
-    });
-
-    this.dom.minValSlider.addEventListener('input', (e) => {
-      this.config.minVal = parseInt(e.target.value, 10);
-      this.dom.minValLabel.textContent = this.config.minVal;
-      if (this.config.minVal >= this.config.maxVal) {
-        this.config.maxVal = this.config.minVal + 10;
-        this.dom.maxValSlider.value = this.config.maxVal;
-        this.dom.maxValLabel.textContent = this.config.maxVal;
-      }
-      if (!this.isRunning) this.generateNewArray();
-    });
-
-    this.dom.maxValSlider.addEventListener('input', (e) => {
-      this.config.maxVal = parseInt(e.target.value, 10);
-      this.dom.maxValLabel.textContent = this.config.maxVal;
-      if (this.config.maxVal <= this.config.minVal) {
-        this.config.minVal = Math.max(1, this.config.maxVal - 10);
-        this.dom.minValSlider.value = this.config.minVal;
-        this.dom.minValLabel.textContent = this.config.minVal;
-      }
-      if (!this.isRunning) this.generateNewArray();
-    });
-
-    this.dom.themeSelect.addEventListener('change', (e) => {
-      document.body.className = e.target.value;
-      this.visualizer.setTheme(e.target.value);
-      this.visualizer.render(this.array, this.config.minVal, this.config.maxVal);
-    });
-
-    // Mode Switcher Buttons
+    // 3. Visualization Mode Switcher
     this.dom.modeButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         this.dom.modeButtons.forEach(b => b.classList.remove('active'));
@@ -171,7 +147,38 @@ class AppController {
       });
     });
 
-    // Visual Effect Toggles
+    // 4. Speed Multipliers
+    this.dom.speedPills.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const speed = parseInt(btn.dataset.speed, 10);
+        this.config.speed = speed;
+        this.dom.speedSlider.value = speed;
+        this.dom.speedVal.textContent = `${speed} ms`;
+        this.updateSpeedPillsActive(speed);
+      });
+    });
+
+    // 5. Sliders
+    this.dom.sizeSlider.addEventListener('input', (e) => {
+      this.config.size = parseInt(e.target.value, 10);
+      this.dom.sizeVal.textContent = this.config.size;
+      if (!this.isRunning) this.generateNewArray();
+    });
+
+    this.dom.speedSlider.addEventListener('input', (e) => {
+      this.config.speed = parseInt(e.target.value, 10);
+      this.dom.speedVal.textContent = `${this.config.speed} ms`;
+      this.updateSpeedPillsActive(this.config.speed);
+    });
+
+    // 6. Theme Switcher
+    this.dom.themeSelect.addEventListener('change', (e) => {
+      document.body.className = e.target.value;
+      this.visualizer.setTheme(e.target.value);
+      this.visualizer.render(this.array, this.config.minVal, this.config.maxVal);
+    });
+
+    // 7. FX Toggles
     this.dom.chipBloom.addEventListener('click', () => {
       this.config.bloom = !this.config.bloom;
       this.dom.chipBloom.classList.toggle('active', this.config.bloom);
@@ -197,18 +204,7 @@ class AppController {
       this.dom.chipSpatial.classList.toggle('active', active);
     });
 
-    // Speed Presets
-    this.dom.speedPresets.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const speed = parseInt(btn.dataset.speed, 10);
-        this.config.speed = speed;
-        this.dom.speedSlider.value = speed;
-        this.dom.speedVal.textContent = `${speed} ms`;
-        this.updateSpeedPresetsActive(speed);
-      });
-    });
-
-    // Audio Controls
+    // 8. Audio Controls
     this.dom.soundToggle.addEventListener('click', () => {
       const enabled = this.soundEngine.toggle();
       this.dom.soundIcon.textContent = enabled ? '🔊' : '🔇';
@@ -220,7 +216,7 @@ class AppController {
       this.soundEngine.setWaveform(e.target.value);
     });
 
-    // Fullscreen Toggle
+    // 9. Fullscreen Toggle
     this.dom.btnFullscreen.addEventListener('click', () => {
       if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().then(() => {
@@ -239,7 +235,7 @@ class AppController {
       setTimeout(() => this.visualizer.handleResize(), 100);
     });
 
-    // Action Buttons
+    // 10. Main Action Buttons
     this.dom.btnGenerate.addEventListener('click', () => {
       if (this.isRunning) this.reset();
       this.generateNewArray();
@@ -250,7 +246,7 @@ class AppController {
     this.dom.btnStep.addEventListener('click', () => this.triggerStep());
     this.dom.btnReset.addEventListener('click', () => this.reset());
 
-    // Keyboard Shortcuts
+    // 11. Global Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'SELECT'].includes(document.activeElement.tagName)) return;
       if (e.code === 'Space') {
@@ -271,8 +267,8 @@ class AppController {
     });
   }
 
-  updateSpeedPresetsActive(speed) {
-    this.dom.speedPresets.forEach(b => {
+  updateSpeedPillsActive(speed) {
+    this.dom.speedPills.forEach(b => {
       b.classList.toggle('active', parseInt(b.dataset.speed, 10) === speed);
     });
   }
@@ -283,13 +279,11 @@ class AppController {
 
     if (preset === 'random') {
       for (let i = 0; i < size; i++) {
-        const val = Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal;
-        this.array.push(val);
+        this.array.push(Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal);
       }
     } else if (preset === 'nearlySorted') {
       for (let i = 0; i < size; i++) {
-        const val = Math.round(minVal + (i / size) * (maxVal - minVal));
-        this.array.push(val);
+        this.array.push(Math.round(minVal + (i / size) * (maxVal - minVal)));
       }
       const swaps = Math.max(2, Math.floor(size * 0.08));
       for (let s = 0; s < swaps; s++) {
@@ -299,8 +293,7 @@ class AppController {
       }
     } else if (preset === 'reversed') {
       for (let i = 0; i < size; i++) {
-        const val = Math.round(maxVal - (i / size) * (maxVal - minVal));
-        this.array.push(val);
+        this.array.push(Math.round(maxVal - (i / size) * (maxVal - minVal)));
       }
     } else if (preset === 'fewUnique') {
       const distinct = [
@@ -311,6 +304,13 @@ class AppController {
       ];
       for (let i = 0; i < size; i++) {
         this.array.push(distinct[Math.floor(Math.random() * distinct.length)]);
+      }
+    } else if (preset === 'pyramid') {
+      const mid = Math.floor(size / 2);
+      for (let i = 0; i < size; i++) {
+        const distFromMid = Math.abs(i - mid);
+        const val = Math.round(maxVal - (distFromMid / mid) * (maxVal - minVal));
+        this.array.push(val);
       }
     } else if (preset === 'sawtooth') {
       const period = Math.max(5, Math.floor(size / 4));
@@ -323,8 +323,9 @@ class AppController {
     this.resetStats();
     this.dom.canvasProgress.style.width = '0%';
     this.visualizer.render(this.array, minVal, maxVal);
-    this.setStatus('Ready', 'default');
-    this.dom.metricPhase.textContent = 'Idle • Ready to Sort';
+    this.setStatus('Ready to Sort', 'default');
+    this.dom.phaseText.textContent = 'Idle • Ready to Sort';
+    this.highlightCodeLine(null);
   }
 
   async startSort() {
@@ -338,7 +339,7 @@ class AppController {
     this.resetStats();
     this.startTimer();
     this.updateControlsState(true);
-    this.setStatus('Sorting in progress...', 'active');
+    this.setStatus('Sorting in Progress', 'active');
     this.dom.canvasProgress.style.width = '0%';
 
     const algoKey = this.config.algorithm;
@@ -360,10 +361,17 @@ class AppController {
       step: async (state) => {
         controller.checkAbort();
         this.updateStatsDisplay();
+
         if (state.phase) {
-          this.dom.metricPhase.textContent = state.phase;
+          this.dom.phaseText.textContent = state.phase;
         }
 
+        // Live code execution line highlighting
+        if (state.line !== undefined) {
+          this.highlightCodeLine(state.line, !!(state.swapping && state.swapping.length > 0));
+        }
+
+        // Progress Calculation
         let progress = 0;
         if (state.sorted && state.sorted.length > 0) {
           progress = (state.sorted.length / n) * 100;
@@ -372,8 +380,10 @@ class AppController {
         }
         this.dom.canvasProgress.style.width = `${Math.min(100, Math.round(progress))}%`;
 
+        // Canvas Redraw
         this.visualizer.render(this.array, this.config.minVal, this.config.maxVal, state);
 
+        // Sound Synthesis with Spatial Audio
         if (state.swapping && state.swapping.length > 0) {
           const idx = state.swapping[0];
           this.soundEngine.playTone(this.array[idx], this.config.minVal, this.config.maxVal, idx, n, this.config.speed);
@@ -383,6 +393,7 @@ class AppController {
           this.soundEngine.playChord(this.array[idx1], this.array[idx2], this.config.minVal, this.config.maxVal, idx1, idx2, n, this.config.speed);
         }
 
+        // Pause & Step Interceptor
         if (this.isPaused && !this.stepRequested) {
           await new Promise(resolve => {
             this.pausePromiseResolve = resolve;
@@ -390,6 +401,7 @@ class AppController {
         }
         this.stepRequested = false;
 
+        // Non-blocking dynamic delay
         await new Promise(resolve => setTimeout(resolve, Math.max(1, this.config.speed)));
       }
     };
@@ -399,13 +411,15 @@ class AppController {
       this.stopTimer();
       this.dom.canvasProgress.style.width = '100%';
       this.setStatus('Sorting Complete!', 'default');
-      this.dom.metricPhase.textContent = 'Completed 🎉';
+      this.dom.phaseText.textContent = 'Completed 🎉';
+      this.highlightCodeLine(null);
       await this.visualizer.playCompletionSweep(this.array, this.config.minVal, this.config.maxVal, this.soundEngine);
     } catch (err) {
       if (err.message === 'SORT_ABORTED') {
         this.setStatus('Reset / Aborted', 'default');
-        this.dom.metricPhase.textContent = 'Idle';
+        this.dom.phaseText.textContent = 'Idle • Ready to Sort';
         this.dom.canvasProgress.style.width = '0%';
+        this.highlightCodeLine(null);
       } else {
         console.error('Sorting execution error:', err);
       }
@@ -426,18 +440,18 @@ class AppController {
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         <span>Resume</span>
       `;
-      this.dom.btnPause.className = 'btn btn-action btn-start';
+      this.dom.btnPause.className = 'btn-dock btn-dock-start';
       this.dom.btnStep.disabled = false;
       this.setStatus('Paused', 'paused');
-      this.dom.metricPhase.textContent = 'Paused • Press Step or Resume';
+      this.dom.phaseText.textContent = 'Paused • Press Step or Resume';
     } else {
       this.dom.btnPause.innerHTML = `
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         <span>Pause</span>
       `;
-      this.dom.btnPause.className = 'btn btn-action btn-pause';
+      this.dom.btnPause.className = 'btn-dock btn-dock-pause';
       this.dom.btnStep.disabled = true;
-      this.setStatus('Sorting in progress...', 'active');
+      this.setStatus('Sorting in Progress', 'active');
 
       if (this.pausePromiseResolve) {
         this.pausePromiseResolve();
@@ -477,7 +491,6 @@ class AppController {
     this.stats.swaps = 0;
     this.updateStatsDisplay();
     this.dom.metricTime.textContent = '0.00 s';
-    this.dom.metricPhase.textContent = 'Idle';
   }
 
   updateStatsDisplay() {
@@ -511,10 +524,8 @@ class AppController {
     this.dom.btnStart.disabled = sortingActive;
     this.dom.btnGenerate.disabled = sortingActive;
     this.dom.sizeSlider.disabled = sortingActive;
-    this.dom.presetSelect.disabled = sortingActive;
-    this.dom.algoSelect.disabled = sortingActive;
-    this.dom.minValSlider.disabled = sortingActive;
-    this.dom.maxValSlider.disabled = sortingActive;
+    this.dom.presetButtons.forEach(b => b.disabled = sortingActive);
+    this.dom.algoPills.forEach(p => p.disabled = sortingActive);
 
     this.dom.btnPause.disabled = !sortingActive;
     this.dom.btnStep.disabled = !sortingActive || !this.isPaused;
@@ -524,7 +535,46 @@ class AppController {
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
         <span>Pause</span>
       `;
-      this.dom.btnPause.className = 'btn btn-action btn-pause';
+      this.dom.btnPause.className = 'btn-dock btn-dock-pause';
+    }
+  }
+
+  renderCodeLines() {
+    const info = ALGORITHM_INFO[this.config.algorithm];
+    if (!info || !info.lines) return;
+
+    this.dom.codeLinesList.innerHTML = '';
+    info.lines.forEach((lineText, idx) => {
+      const lineEl = document.createElement('div');
+      lineEl.className = 'code-line';
+      lineEl.id = `code-line-${idx + 1}`;
+
+      const numEl = document.createElement('span');
+      numEl.className = 'code-line-num';
+      numEl.textContent = (idx + 1).toString().padStart(2, '0');
+
+      const textEl = document.createElement('span');
+      textEl.className = 'code-line-text';
+      textEl.textContent = lineText;
+
+      lineEl.appendChild(numEl);
+      lineEl.appendChild(textEl);
+      this.dom.codeLinesList.appendChild(lineEl);
+    });
+  }
+
+  highlightCodeLine(lineNum, isSwap = false) {
+    const lines = this.dom.codeLinesList.querySelectorAll('.code-line');
+    lines.forEach(l => {
+      l.classList.remove('active-line');
+      l.classList.remove('swap-line');
+    });
+
+    if (lineNum) {
+      const activeEl = document.getElementById(`code-line-${lineNum}`);
+      if (activeEl) {
+        activeEl.classList.add(isSwap ? 'swap-line' : 'active-line');
+      }
     }
   }
 
@@ -538,8 +588,8 @@ class AppController {
     this.dom.algoWorst.textContent = info.worstTime;
     this.dom.algoSpace.textContent = info.space;
     this.dom.algoStable.textContent = info.stable;
+    this.dom.algoInPlace.textContent = info.inPlace || 'Yes';
     this.dom.algoDesc.textContent = info.description;
-    this.dom.algoCode.textContent = info.pseudocode;
   }
 }
 
@@ -547,3 +597,4 @@ class AppController {
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new AppController();
 });
+EOF

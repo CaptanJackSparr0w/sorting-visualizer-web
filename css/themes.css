@@ -1,27 +1,31 @@
-/* Color themes and Palette variations */
+/* Modern High-Aesthetic Theme Engine */
 
-/* Theme: Rainbow HSV (Faithful to original Python repo, enhanced vibrancy) */
+/* Theme: Rainbow Chromatic (Default) */
 body.theme-rainbow {
-  --theme-base-color: #38bdf8;
+  --theme-base: #38bdf8;
+  --theme-gradient: linear-gradient(135deg, #ec4899, #8b5cf6, #3b82f6, #10b981, #f59e0b);
   --theme-accent: #8b5cf6;
-  --theme-glow: rgba(139, 92, 246, 0.4);
-  --bg-radial-1: rgba(59, 130, 246, 0.12);
-  --bg-radial-2: rgba(236, 72, 153, 0.1);
+  --theme-glow: rgba(56, 189, 248, 0.45);
+  --bg-radial-1: rgba(59, 130, 246, 0.14);
+  --bg-radial-2: rgba(236, 72, 153, 0.12);
+  --hero-glow: rgba(56, 189, 248, 0.18);
   --color-comparing: #f59e0b;
   --color-swapping: #ef4444;
   --color-pivot: #ec4899;
   --color-sorted: #10b981;
 }
 
-/* Theme: Cyberpunk Neon */
+/* Theme: Cyberpunk Neon 2077 */
 body.theme-cyberpunk {
-  --bg-main: #05050f;
-  --bg-card: rgba(18, 14, 38, 0.85);
-  --theme-base-color: #f43f5e;
+  --bg-main: #04040a;
+  --bg-card: rgba(18, 12, 36, 0.88);
+  --theme-base: #f43f5e;
+  --theme-gradient: linear-gradient(135deg, #f43f5e, #a855f7, #06b6d4);
   --theme-accent: #06b6d4;
-  --theme-glow: rgba(244, 63, 94, 0.45);
-  --bg-radial-1: rgba(244, 63, 94, 0.15);
-  --bg-radial-2: rgba(6, 182, 212, 0.12);
+  --theme-glow: rgba(244, 63, 94, 0.5);
+  --bg-radial-1: rgba(244, 63, 94, 0.18);
+  --bg-radial-2: rgba(6, 182, 212, 0.15);
+  --hero-glow: rgba(244, 63, 94, 0.22);
   --color-comparing: #facc15;
   --color-swapping: #06b6d4;
   --color-pivot: #f43f5e;
@@ -30,13 +34,15 @@ body.theme-cyberpunk {
 
 /* Theme: Aurora Borealis */
 body.theme-aurora {
-  --bg-main: #040f16;
-  --bg-card: rgba(8, 28, 40, 0.85);
-  --theme-base-color: #14b8a6;
+  --bg-main: #030d14;
+  --bg-card: rgba(6, 24, 36, 0.88);
+  --theme-base: #14b8a6;
+  --theme-gradient: linear-gradient(135deg, #14b8a6, #06b6d4, #3b82f6);
   --theme-accent: #06b6d4;
-  --theme-glow: rgba(20, 184, 166, 0.4);
-  --bg-radial-1: rgba(20, 184, 166, 0.15);
-  --bg-radial-2: rgba(56, 189, 248, 0.12);
+  --theme-glow: rgba(20, 184, 166, 0.45);
+  --bg-radial-1: rgba(20, 184, 166, 0.18);
+  --bg-radial-2: rgba(56, 189, 248, 0.14);
+  --hero-glow: rgba(20, 184, 166, 0.2);
   --color-comparing: #fb923c;
   --color-swapping: #f43f5e;
   --color-pivot: #a855f7;
@@ -45,13 +51,15 @@ body.theme-aurora {
 
 /* Theme: Sunset Retrowave */
 body.theme-sunset {
-  --bg-main: #120814;
-  --bg-card: rgba(32, 16, 36, 0.85);
-  --theme-base-color: #f97316;
+  --bg-main: #0f050e;
+  --bg-card: rgba(28, 12, 32, 0.88);
+  --theme-base: #f97316;
+  --theme-gradient: linear-gradient(135deg, #f97316, #ec4899, #8b5cf6);
   --theme-accent: #ec4899;
-  --theme-glow: rgba(249, 115, 22, 0.45);
-  --bg-radial-1: rgba(249, 115, 22, 0.15);
-  --bg-radial-2: rgba(236, 72, 153, 0.15);
+  --theme-glow: rgba(249, 115, 22, 0.5);
+  --bg-radial-1: rgba(249, 115, 22, 0.18);
+  --bg-radial-2: rgba(236, 72, 153, 0.16);
+  --hero-glow: rgba(249, 115, 22, 0.22);
   --color-comparing: #fde047;
   --color-swapping: #ef4444;
   --color-pivot: #8b5cf6;
@@ -60,28 +68,32 @@ body.theme-sunset {
 
 /* Theme: Matrix Terminal */
 body.theme-matrix {
-  --bg-main: #020a04;
-  --bg-card: rgba(6, 22, 10, 0.88);
-  --theme-base-color: #22c55e;
+  --bg-main: #010803;
+  --bg-card: rgba(4, 20, 8, 0.9);
+  --theme-base: #22c55e;
+  --theme-gradient: linear-gradient(135deg, #22c55e, #16a34a, #10b981);
   --theme-accent: #4ade80;
-  --theme-glow: rgba(34, 197, 94, 0.5);
-  --bg-radial-1: rgba(34, 197, 94, 0.18);
-  --bg-radial-2: rgba(16, 185, 129, 0.1);
+  --theme-glow: rgba(34, 197, 94, 0.55);
+  --bg-radial-1: rgba(34, 197, 94, 0.2);
+  --bg-radial-2: rgba(16, 185, 129, 0.12);
+  --hero-glow: rgba(34, 197, 94, 0.25);
   --color-comparing: #facc15;
   --color-swapping: #dc2626;
   --color-pivot: #38bdf8;
   --color-sorted: #4ade80;
 }
 
-/* Theme: Glacier Ice */
+/* Theme: Glacier Arctic Ice */
 body.theme-glacier {
-  --bg-main: #060e1a;
-  --bg-card: rgba(12, 28, 52, 0.85);
-  --theme-base-color: #38bdf8;
+  --bg-main: #040a14;
+  --bg-card: rgba(8, 22, 44, 0.88);
+  --theme-base: #38bdf8;
+  --theme-gradient: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
   --theme-accent: #e0f2fe;
-  --theme-glow: rgba(56, 189, 248, 0.45);
-  --bg-radial-1: rgba(56, 189, 248, 0.15);
-  --bg-radial-2: rgba(125, 211, 252, 0.1);
+  --theme-glow: rgba(56, 189, 248, 0.5);
+  --bg-radial-1: rgba(56, 189, 248, 0.18);
+  --bg-radial-2: rgba(129, 140, 248, 0.14);
+  --hero-glow: rgba(56, 189, 248, 0.22);
   --color-comparing: #fbbf24;
   --color-swapping: #f43f5e;
   --color-pivot: #c084fc;

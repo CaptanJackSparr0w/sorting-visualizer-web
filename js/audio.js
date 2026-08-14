@@ -1,12 +1,11 @@
 /**
- * Advanced Audio Synthesizer Engine using Web Audio API
- * Features:
- * - Exponential musical pitch curve (130 Hz to 1100 Hz)
- * - True 3D Stereo Spatial Panning (panning from -1.0 on left to +1.0 on right)
- * - ADSR envelope with dynamics compression to prevent clipping
- * - Polyphonic voice pooling
- * - Completion celebratory arpeggiator chords
+ * Studio-Grade Audio Synthesizer Engine using Web Audio API
+ * - Pentatonic Harmonic Pitch Quantization (Generative Chime effect)
+ * - 3D Spatial Stereo Panning across array indices
+ * - ADSR Volume Envelope with Fast Attack and Exponential Decay
+ * - Master Dynamics Compressor to prevent clipping
  */
+
 class SoundEngine {
   constructor() {
     this.ctx = null;
@@ -14,11 +13,17 @@ class SoundEngine {
     this.enabled = true;
     this.spatialPanning = true;
     this.waveform = 'triangle';
-    this.volume = 0.08;
-    this.minFreq = 130;  // C3
-    this.maxFreq = 1050; // C6
+    this.volume = 0.09;
     this.activeVoices = 0;
-    this.maxVoices = 12;
+    this.maxVoices = 16;
+
+    // Pentatonic scale frequencies across 4 octaves (C3 to A6) for musical sound
+    this.pentatonicScale = [
+      130.81, 146.83, 164.81, 196.00, 220.00, // C3 - A3
+      261.63, 293.66, 329.63, 392.00, 440.00, // C4 - A4
+      523.25, 587.33, 659.25, 783.99, 880.00, // C5 - A5
+      1046.50, 1174.66, 1318.51, 1567.98, 1760.00 // C6 - A6
+    ];
   }
 
   init() {
@@ -26,11 +31,10 @@ class SoundEngine {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
-        // Master Dynamics Compressor to prevent distortion on rapid bursts
         this.compressor = this.ctx.createDynamicsCompressor();
         this.compressor.threshold.setValueAtTime(-18, this.ctx.currentTime);
         this.compressor.knee.setValueAtTime(30, this.ctx.currentTime);
-        this.compressor.ratio.setValueAtTime(10, this.ctx.currentTime);
+        this.compressor.ratio.setValueAtTime(12, this.ctx.currentTime);
         this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
         this.compressor.release.setValueAtTime(0.20, this.ctx.currentTime);
         this.compressor.connect(this.ctx.destination);
@@ -63,27 +67,29 @@ class SoundEngine {
   }
 
   /**
-   * Maps an array value to a harmonic musical pitch (Hz).
+   * Quantizes a normalized value (0.0 to 1.0) into the harmonic pentatonic scale
    */
   getFrequency(value, minVal = 1, maxVal = 100) {
     const clamped = Math.max(minVal, Math.min(maxVal, value));
     const ratio = (clamped - minVal) / (maxVal - minVal || 1);
-    // Exponential frequency curve
-    return this.minFreq * Math.pow(this.maxFreq / this.minFreq, ratio);
+    const scaleIndex = Math.min(
+      this.pentatonicScale.length - 1,
+      Math.floor(ratio * this.pentatonicScale.length)
+    );
+    return this.pentatonicScale[scaleIndex];
   }
 
   /**
-   * Computes stereo pan position (-1.0 to +1.0) based on element index in array
+   * Computes stereo pan position (-0.85 to +0.85) from element index
    */
   getPanPosition(index, total) {
     if (!this.spatialPanning || total <= 1 || index === undefined) return 0;
     const clampedIdx = Math.max(0, Math.min(total - 1, index));
-    // Range from -0.85 (left) to +0.85 (right)
     return (clampedIdx / (total - 1)) * 1.7 - 0.85;
   }
 
   /**
-   * Synthesizes a clean musical note with attack/decay envelope & stereo panning
+   * Plays a synthesized musical note with spatial panning & dynamic envelope
    */
   playTone(value, minVal = 1, maxVal = 100, index = 0, total = 60, durationMs = 40) {
     if (!this.enabled) return;
@@ -93,7 +99,7 @@ class SoundEngine {
     try {
       const now = this.ctx.currentTime;
       const freq = this.getFrequency(value, minVal, maxVal);
-      const durSec = Math.max(0.02, Math.min(0.12, durationMs / 1000));
+      const durSec = Math.max(0.025, Math.min(0.14, durationMs / 1000));
 
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
@@ -101,15 +107,13 @@ class SoundEngine {
       osc.type = this.waveform;
       osc.frequency.setValueAtTime(freq, now);
 
-      // Attack & Exponential Release
-      const attackTime = 0.005;
+      // Fast attack & exponential decay
       gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(this.volume, now + attackTime);
+      gain.gain.exponentialRampToValueAtTime(this.volume, now + 0.005);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + durSec);
 
       this.activeVoices++;
 
-      // Spatial stereo panning
       if (this.ctx.createStereoPanner && this.spatialPanning) {
         const panner = this.ctx.createStereoPanner();
         panner.pan.setValueAtTime(this.getPanPosition(index, total), now);
@@ -129,13 +133,10 @@ class SoundEngine {
         gain.disconnect();
       };
     } catch (e) {
-      console.warn('Web Audio synthesis exception:', e);
+      console.warn('Audio synthesis error:', e);
     }
   }
 
-  /**
-   * Plays a 2-tone harmonic chord for comparisons / swaps
-   */
   playChord(val1, val2, minVal, maxVal, idx1, idx2, total, durationMs = 40) {
     if (!this.enabled) return;
     this.playTone(val1, minVal, maxVal, idx1, total, durationMs);
@@ -145,15 +146,14 @@ class SoundEngine {
   }
 
   /**
-   * Multi-stage celebratory arpeggio upon sorting completion
+   * Harmonious C Major 9th Arpeggio celebration upon sort completion
    */
   playCompletionChime() {
     if (!this.enabled) return;
     this.init();
     if (!this.ctx) return;
 
-    // Major 9th Arpeggio: C5 -> E5 -> G5 -> B5 -> D6
-    const notes = [523.25, 659.25, 783.99, 987.77, 1174.66];
+    const notes = [523.25, 659.25, 783.99, 987.77, 1046.50, 1318.51]; // C5, E5, G5, B5, C6, E6
     notes.forEach((freq, idx) => {
       setTimeout(() => {
         try {
@@ -164,8 +164,8 @@ class SoundEngine {
           osc.frequency.setValueAtTime(freq, now);
 
           gain.gain.setValueAtTime(0.0001, now);
-          gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+          gain.gain.exponentialRampToValueAtTime(0.14, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
 
           if (this.ctx.createStereoPanner) {
             const panner = this.ctx.createStereoPanner();
@@ -179,9 +179,9 @@ class SoundEngine {
           }
 
           osc.start(now);
-          osc.stop(now + 0.45);
+          osc.stop(now + 0.5);
         } catch (e) {}
-      }, idx * 65);
+      }, idx * 60);
     });
   }
 }
